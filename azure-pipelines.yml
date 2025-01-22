@@ -155,3 +155,18 @@ stages:
         MIN_WORKER: $(T0_INSTANCE_NUM)
         MAX_WORKER: $(T0_INSTANCE_NUM)
         MGMT_BRANCH: $(BUILD_BRANCH)
+
+  - job: t0_2vlans_elastictest
+    pool: sonic-ubuntu-1c
+    displayName: "kvmtest-t0-2vlans by Elastictest"
+    timeoutInMinutes: 240
+    continueOnError: false
+    steps:
+    - template: .azure-pipelines/run-test-elastictest-template.yml@sonic-mgmt
+      parameters:
+        TOPOLOGY: t0
+        TEST_SET: t0-2vlans
+        MIN_WORKER: $(T0_2VLANS_INSTANCE_NUM)
+        MAX_WORKER: $(T0_2VLANS_INSTANCE_NUM)
+        MGMT_BRANCH: $(BUILD_BRANCH)
+        DEPLOY_MG_EXTRA_PARAMS: "-e vlan_config=two_vlan_a"
