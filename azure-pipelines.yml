@@ -25,7 +25,7 @@ name: $(TeamProject)_$(Build.DefinitionName)_$(SourceBranchName)_$(Date:yyyyMMdd
 
 resources:
   repositories:
-  - repository: sonic-mgmt
+  - repository: sonic-mgmt.msft
     type: github
     name: Azure/sonic-mgmt.msft
     endpoint: Azure
