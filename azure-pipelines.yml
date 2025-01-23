@@ -28,7 +28,7 @@ resources:
   - repository: sonic-mgmt.msft
     type: github
     name: Azure/sonic-mgmt.msft
-    ref: master
+    ref: 202405
     endpoint: build
   - repository: buildimage
     type: github
