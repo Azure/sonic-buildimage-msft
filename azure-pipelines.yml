@@ -29,7 +29,7 @@ resources:
     type: github
     name: Azure/sonic-mgmt.msft
     ref: master
-    endpoint: Azure
+    endpoint: build
   - repository: buildimage
     type: github
     name: sonic-net/sonic-buildimage
