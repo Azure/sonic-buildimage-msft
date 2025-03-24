@@ -1,6 +1,6 @@
 #
 # SPDX-FileCopyrightText: NVIDIA CORPORATION & AFFILIATES
-# Copyright (c) 2016-2024 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+# Copyright (c) 2016-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 # Apache-2.0
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,8 +17,8 @@
 #
 # Mellanox SAI
 
-MFT_VERSION = 4.30.2
-MFT_REVISION = 23
+MFT_VERSION = 4.31.0
+MFT_REVISION = 3004
 
 MLNX_MFT_INTERNAL_SOURCE_BASE_URL =
 
