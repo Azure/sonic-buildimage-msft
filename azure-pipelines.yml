@@ -270,3 +270,16 @@ stages:
           MAX_WORKER: $(T0_SONIC_INSTANCE_NUM)
           MGMT_BRANCH: $(BUILD_BRANCH)
           MGMT_URL: "https://raw.githubusercontent.com/Azure/sonic-mgmt.msft"
+
+#  - job: wan_elastictest
+#    displayName: "kvmtest-wan by Elastictest"
+#    pool: sonic-ubuntu-1c
+#    timeoutInMinutes: 240
+#    continueOnError: false
+#    steps:
+#      - template: .azure-pipelines/run-test-scheduler-template.yml
+#        parameters:
+#          TOPOLOGY: wan-pub
+#          MIN_WORKER: $(WAN_INSTANCE_NUM)
+#          MAX_WORKER: $(WAN_INSTANCE_NUM)
+#          COMMON_EXTRA_PARAMS: "--skip_sanity "
