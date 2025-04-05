@@ -4,7 +4,7 @@
  *
  */
 /*
- * Copyright 2018-2024 Broadcom. All rights reserved.
+ * Copyright 2018-2025 Broadcom. All rights reserved.
  * The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
  * 
  * This program is free software; you can redistribute it and/or
@@ -49,6 +49,7 @@ static int debug;
 
 #define FCS_SZ 4
 
+#define PSAMPLE_NLA_PADDING 4
 #define PSAMPLE_PKT_HANDLED (1)
 /* These below need to match incoming enum values */
 #define PSAMPLE_FILTER_TAG_STRIP 0
@@ -307,7 +308,7 @@ bcmgenl_psample_filter_cb(struct sk_buff *skb, ngknet_filter_t **filt)
 
     GENL_DBG_VERB
         ("pkt size %d, match_filt->dest_id %d\n",
-         pkt_len, match_filt->dest_id);
+         cbd->pkt_len, match_filt->dest_id);
     GENL_DBG_VERB
         ("filter user data: 0x%08x\n", *(uint32_t *)match_filt->user_data);
     GENL_DBG_VERB
@@ -463,6 +464,7 @@ PSAMPLE_FILTER_CB_PKT_HANDLED:
     if (bcmgenl_pkt.meta.sample_type != SAMPLE_TYPE_NONE) {
         g_bcmgenl_psample_stats.pkts_f_handled++;
         /* Not sending to network protocol stack */
+        dev_kfree_skb_any(skb);
         skb = NULL;
     } else {
         g_bcmgenl_psample_stats.pkts_f_pass_through++;

@@ -4,7 +4,7 @@
  *
  */
 /*
- * Copyright 2018-2024 Broadcom. All rights reserved.
+ * Copyright 2018-2025 Broadcom. All rights reserved.
  * The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
  * 
  * This program is free software; you can redistribute it and/or
@@ -2778,7 +2778,7 @@ ngknet_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
         break;
     case NGKNET_STATS_RESET:
         DBG_CMD(("NGKNET_STATS_RESET\n"));
-        bcmcnet_pdma_dev_stats_reset(pdev);
+        bcmcnet_pdma_dev_stats_reset(pdev, ioc.iarg[0]);
         break;
     case NGKNET_NETIF_CREATE:
         DBG_CMD(("NGKNET_NETIF_CREATE\n"));

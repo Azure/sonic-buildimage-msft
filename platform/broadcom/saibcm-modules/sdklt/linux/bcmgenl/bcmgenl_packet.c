@@ -4,7 +4,7 @@
  *
  */
 /*
- * Copyright 2018-2024 Broadcom. All rights reserved.
+ * Copyright 2018-2025 Broadcom. All rights reserved.
  * The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
  * 
  * This program is free software; you can redistribute it and/or
@@ -237,8 +237,8 @@ bcmgenl_packet_filter_cb(struct sk_buff *skb, ngknet_filter_t **filt)
     }
 
     /* check if this packet is from the same filter */
-    if  (match_filt->dest_type != NGKNET_FILTER_DEST_T_CB) ||
-        (strncmp(match_filt->desc, BCMGENL_PACKET_NAME, NGKNET_FILTER_DESC_MAX) != 0) {
+    if ((match_filt->dest_type != NGKNET_FILTER_DEST_T_CB) ||
+        (strncmp(match_filt->desc, BCMGENL_PACKET_NAME, NGKNET_FILTER_DESC_MAX) != 0)) {
         return (skb);
     }
     dev_no = cbd->dinfo->dev_no;
@@ -376,6 +376,7 @@ FILTER_CB_PKT_HANDLED:
     if (rv == 1) {
         g_bcmgenl_packet_stats.pkts_f_handled++;
         /* Not sending to network protocol stack */
+        dev_kfree_skb_any(skb);
         skb = NULL;
     } else {
         g_bcmgenl_packet_stats.pkts_f_pass_through++;

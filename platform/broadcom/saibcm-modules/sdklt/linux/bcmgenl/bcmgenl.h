@@ -4,7 +4,7 @@
  *
  */
 /*
- * Copyright 2018-2024 Broadcom. All rights reserved.
+ * Copyright 2018-2025 Broadcom. All rights reserved.
  * The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
  * 
  * This program is free software; you can redistribute it and/or
@@ -32,6 +32,7 @@
 
 /*! Module information */
 #define BCMGENL_MODULE_NAME     "linux_bcmgenl"
+
 /*! Use similar path to SDK6 genl psample path */
 #define BCM_PROCFS_NAME        "bcm"
 #define BCMGENL_PROCFS_NAME    "genl"

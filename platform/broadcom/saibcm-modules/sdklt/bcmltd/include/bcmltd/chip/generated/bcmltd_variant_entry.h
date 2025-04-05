@@ -7,7 +7,7 @@
  *
  * Edits to this file will be lost when it is regenerated.
  *
- * Copyright 2018-2024 Broadcom. All rights reserved.
+ * Copyright 2018-2025 Broadcom. All rights reserved.
  * The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
  * 
  * This program is free software; you can redistribute it and/or
@@ -43,6 +43,7 @@
 #include "../../entry/generated/bcm78800_a0/bcm78800_a0_ltd_variant_entry.h"
 #include "../../entry/generated/bcm78900_b0/bcm78900_b0_ltd_variant_entry.h"
 #include "../../entry/generated/bcm78905_a0/bcm78905_a0_ltd_variant_entry.h"
+#include "../../entry/generated/bcm78907_a0/bcm78907_a0_ltd_variant_entry.h"
 #include "../../entry/generated/bcm56690_a0/dna_6_5_31_7_0/bcm56690_a0_dna_6_5_31_7_0_ltd_variant_entry.h"
 #include "../../entry/generated/bcm56780_a0/cna_6_5_31_3_0/bcm56780_a0_cna_6_5_31_3_0_ltd_variant_entry.h"
 #include "../../entry/generated/bcm56780_a0/dna_6_5_31_7_0/bcm56780_a0_dna_6_5_31_7_0_ltd_variant_entry.h"

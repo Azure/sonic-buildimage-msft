@@ -4,7 +4,7 @@
  *
  */
 /*
- * Copyright 2018-2024 Broadcom. All rights reserved.
+ * Copyright 2018-2025 Broadcom. All rights reserved.
  * The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
  * 
  * This program is free software; you can redistribute it and/or
@@ -375,13 +375,13 @@ bcmcnet_pdma_dev_stats_get(struct pdma_dev *dev)
  * Reset device statistics
  */
 int
-bcmcnet_pdma_dev_stats_reset(struct pdma_dev *dev)
+bcmcnet_pdma_dev_stats_reset(struct pdma_dev *dev, pdma_dir_t dir)
 {
     if (!dev->ops || !dev->ops->dev_stats_reset) {
         return SHR_E_INTERNAL;
     }
 
-    dev->ops->dev_stats_reset(dev);
+    dev->ops->dev_stats_reset(dev, dir);
 
     return SHR_E_NONE;
 }

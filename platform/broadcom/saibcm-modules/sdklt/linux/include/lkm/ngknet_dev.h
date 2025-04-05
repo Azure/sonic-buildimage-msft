@@ -9,7 +9,7 @@
  *
  */
 /*
- * Copyright 2018-2024 Broadcom. All rights reserved.
+ * Copyright 2018-2025 Broadcom. All rights reserved.
  * The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
  * 
  * This program is free software; you can redistribute it and/or
@@ -381,9 +381,9 @@ typedef struct ngknet_chan_cfg_s {
     /*! Rx or Tx */
     int dir;
     /*! Rx channel */
-#define NGKNET_RX_CHAN          0
+#define NGKNET_RX_CHAN          PDMA_Q_RX
     /*! Tx channel */
-#define NGKNET_TX_CHAN          1
+#define NGKNET_TX_CHAN          PDMA_Q_TX
 
     /*! Pipe specified for Rx/Tx */
     int pipe;

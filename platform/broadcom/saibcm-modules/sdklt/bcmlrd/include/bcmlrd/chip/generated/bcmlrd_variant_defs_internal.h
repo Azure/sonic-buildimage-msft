@@ -7,7 +7,7 @@
  *
  * Edits to this file will be lost when it is regenerated.
  *
- * Copyright 2018-2024 Broadcom. All rights reserved.
+ * Copyright 2018-2025 Broadcom. All rights reserved.
  * The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
  * 
  * This program is free software; you can redistribute it and/or
@@ -27,6 +27,7 @@
 #define BCMLRD_VARIANT_DEFS_INTERNAL_H
 #ifndef DOXYGEN_IGNORE_AUTOGEN
 /*+replace reverse */
+#include "../../defs/generated/bcm78907_a0/bcm78907_a0_lrd_variant_def.h"
 #include "../../defs/generated/bcm78905_a0/bcm78905_a0_lrd_variant_def.h"
 #include "../../defs/generated/bcm78900_b0/bcm78900_b0_lrd_variant_def.h"
 #include "../../defs/generated/bcm78800_a0/dna_6_5_31_5_0/bcm78800_a0_dna_6_5_31_5_0_lrd_variant_def.h"

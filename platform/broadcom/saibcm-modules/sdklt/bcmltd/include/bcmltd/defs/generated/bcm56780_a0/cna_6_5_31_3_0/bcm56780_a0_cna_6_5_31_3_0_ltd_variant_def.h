@@ -7,7 +7,7 @@
  *
  * Edits to this file will be lost when it is regenerated.
  *
- * Copyright 2018-2024 Broadcom. All rights reserved.
+ * Copyright 2018-2025 Broadcom. All rights reserved.
  * The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
  * 
  * This program is free software; you can redistribute it and/or
@@ -29,7 +29,7 @@
 
 #ifndef DOXYGEN_IGNORE_AUTOGEN
 
-#define BCMLTD_VARIANT_BCM56780_A0_CNA_6_5_31_3_0 16
+#define BCMLTD_VARIANT_BCM56780_A0_CNA_6_5_31_3_0 17
 #define BCMLTD_VARIANT_LOCAL_BCM56780_A0_CNA_6_5_31_3_0 1
 #endif /* DOXYGEN_IGNORE_AUTOGEN */
 

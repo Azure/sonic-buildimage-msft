@@ -4,7 +4,7 @@
  * Edits to this file will be lost when it is regenerated.
  * Tool: INTERNAL/drd/instpkgs.pl
  *
- * Copyright 2018-2024 Broadcom. All rights reserved.
+ * Copyright 2018-2025 Broadcom. All rights reserved.
  * The term 'Broadcom' refers to Broadcom Inc. and/or its subsidiaries.
  * 
  * This program is free software; you can redistribute it and/or
@@ -26,17 +26,17 @@
  *
  *     (1) #define BCMDRD_CONFIG_INCLUDE_<CHIPNAME> [1|0]
  *             -- Include or exclude all revisions of the given device
- *             Example: #define BCMDRD_CONFIG_INCLUDE_BCM56080    1
+ *             Example: #define BCMDRD_CONFIG_INCLUDE_BCM56780    1
  *
  *     (2) #define BCMDRD_CONFIG_INCLUDE_<CHIPNAME>_<REV>X [1|0]
  *             -- Include or exclude all versions of the given revision
- *             Example: #define BCMDRD_CONFIG_INCLUDE_BCM56080_Ax 0
- *                      #define BCMDRD_CONFIG_INCLUde_BCM56080_Bx 1
+ *             Example: #define BCMDRD_CONFIG_INCLUDE_BCM56780_Ax 0
+ *                      #define BCMDRD_CONFIG_INCLUde_BCM56780_Bx 1
  *
  *     (3) #define BCMDRD_CONFIG_INCLUDE_<EXACT_CHIP> [1|0]
  *             -- Include or exclude an exact device
- *             Example: #define BCMDRD_CONFIG_INCLUDE_BCM56080_A0 1
- *                      #define BCMDRD_CONFIG_INCLUDE_BCM56080_A1 0
+ *             Example: #define BCMDRD_CONFIG_INCLUDE_BCM56780_A0 1
+ *                      #define BCMDRD_CONFIG_INCLUDE_BCM56780_A1 0
  *
  *
  * The value of BCMDRD_CONFIG_INCLUDE_CHIP_DEFAULT is used for any
@@ -1260,6 +1260,23 @@
 #endif
 
 
+/*
+ * BCM78907
+ */
+
+/* Sets the default include state if it was not given */
+#ifndef BCMDRD_CONFIG_INCLUDE_BCM78907
+#define BCMDRD_CONFIG_INCLUDE_BCM78907 BCMDRD_CONFIG_INCLUDE_CHIP_DEFAULT
+#endif
+/* Resolve revision dependencies */
+#ifndef BCMDRD_CONFIG_INCLUDE_BCM78907_Ax
+#define BCMDRD_CONFIG_INCLUDE_BCM78907_Ax BCMDRD_CONFIG_INCLUDE_BCM78907
+#endif
+#ifndef BCMDRD_CONFIG_INCLUDE_BCM78907_A0
+#define BCMDRD_CONFIG_INCLUDE_BCM78907_A0 BCMDRD_CONFIG_INCLUDE_BCM78907_Ax
+#endif
+
+
 #endif /* BCMDRD_CONFIG_CHIPS_H */
 
 /*
@@ -1455,6 +1472,12 @@ CONFIG_OPTION(BCMDRD_CONFIG_INCLUDE_BCM78905_Ax)
 CONFIG_OPTION(BCMDRD_CONFIG_INCLUDE_BCM78905_A0)
 #ifdef BCMDRD_CONFIG_INCLUDE_BCM78905_A0_IMPLIED
 CONFIG_OPTION(BCMDRD_CONFIG_INCLUDE_BCM78905_A0_IMPLIED)
+#endif
+CONFIG_OPTION(BCMDRD_CONFIG_INCLUDE_BCM78907)
+CONFIG_OPTION(BCMDRD_CONFIG_INCLUDE_BCM78907_Ax)
+CONFIG_OPTION(BCMDRD_CONFIG_INCLUDE_BCM78907_A0)
+#ifdef BCMDRD_CONFIG_INCLUDE_BCM78907_A0_IMPLIED
+CONFIG_OPTION(BCMDRD_CONFIG_INCLUDE_BCM78907_A0_IMPLIED)
 #endif
 #undef CONFIG_OPTION
 #endif /* #ifdef CONFIG_OPTION */
