@@ -15,6 +15,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
+
 MLNX_SDK_VERSION = 4.7.3534
 MLNX_SDK_ISSU_VERSION = 101
 
