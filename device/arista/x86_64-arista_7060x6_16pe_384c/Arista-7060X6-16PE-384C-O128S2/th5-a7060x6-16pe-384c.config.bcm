@@ -34,7 +34,7 @@ bcm_device:
             l3_alpm_template: 1
             l3_alpm_hit_skip: 1
             sai_feat_tail_timestamp : 1
-            sai_mmu_default_cpu_config : 1
+            sai_mmu_custom_config : 1
             sai_port_phy_time_sync_en : 1
             sai_field_group_auto_prioritize: 1
             #l3_intf_vlan_split_egress for MTU at L3IF
@@ -1351,14 +1351,6 @@ device:
                 PORT_ID: 164
             :
                 PC_PHYS_PORT_ID: 514
-#           ?
-#               PORT_ID: 274
-#           :
-#               PC_PHYS_PORT_ID: 515
-#           ?
-#               PORT_ID: 186
-#           :
-#               PC_PHYS_PORT_ID: 516
 ...
 ---
 device:
@@ -1404,7 +1396,6 @@ device:
                 FEC_MODE: PC_FEC_RS544_2XN
                 MAX_FRAME_SIZE: 9416
             ?
-#               PORT_ID: [[76, 76], [164, 164], [274, 274], [186, 186]]
                 PORT_ID: [[76, 76], [164, 164]]
             :
                 ENABLE: 0
@@ -1447,9 +1438,6 @@ device:
         DEVICE_CONFIG:
             AUTOLOAD_BOARD_SETTINGS: 0
 ...
-
-# DO NOT MODIFY THIS FILE!  It was auto generated from lossy_lossless_template.yml
-
 ### Baseline
 # Skipping buffer reservation. This means that don't use SDK default setings.
 ---
@@ -1464,7 +1452,6 @@ device:
             NUM_MC_Q: NUM_MC_Q_4
 
 ...
-
 # Initialize the various thresholds to zero
 ---
 # Ingress service pool level initialization
@@ -1521,7 +1508,7 @@ device:
                 TM_ING_SERVICE_POOL_ID: 0
                 TM_HEADROOM_POOL_ID: 0
 
-        # PFC generation: Priority group(s) 
+        # PFC generation: Priority group(s)
         TM_PFC_PRI_TO_PRI_GRP_MAP:
             ?
                 TM_PFC_PRI_TO_PRI_GRP_MAP_ID: [0,7]
@@ -1549,7 +1536,7 @@ device:
                 RED_SHARED_LIMIT_CELLS: 0
                 RED_SHARED_RESUME_LIMIT_CELLS: 0
 
-        # Egress multicast CQE pool        
+        # Egress multicast CQE pool
         TM_THD_MC_EGR_SERVICE_POOL:
             ?
                 BUFFER_POOL: [0,1]
@@ -1563,7 +1550,6 @@ device:
                 RED_SHARED_LIMIT_CELLS: 0
                 RED_SHARED_RESUME_LIMIT_CELLS: 0
 
-
         TM_THD_DYNAMIC_MARGIN:
             ?
                 BUFFER_POOL: [0,1]
@@ -1572,8 +1558,8 @@ device:
                 MARGIN: [8256,16513,24769,33026,41282,49539,57795,66052,82565,99078]
 
 ...
-#Per Port Registers
-#Input Port Thresholds
+# Per Port Registers
+# Input Port Thresholds
 ---
 device:
     0:
@@ -1591,7 +1577,7 @@ device:
             ?
                 PORT_ID: [[0,4], [11,14], [21,25], [33,36], [43,47], [55,58], [65,69], [76,80], [87,91], [99,102], [109,113], [121,124], [131,135], [143,146], [153,157], [165,168], [175,179], [187,190], [197,201], [209,212], [219,223], [231,234], [241,245], [253,256], [263,267], [274,278], [285,289], [297,300], [307,311], [319,322], [329,333], [341,344], 351]
             :
-                # Pause enable bit, 
+                # Pause enable bit,
                 PAUSE: 0
                 # Ingress priority profile select, maps to priority group
                 ING_PRI_MAP_ID: 0
@@ -1599,9 +1585,9 @@ device:
                 PRI_GRP_MAP_ID: 0
 
         # Ingress port Level to Service Pool limits
-        TM_ING_THD_PORT_SERVICE_POOL: 
+        TM_ING_THD_PORT_SERVICE_POOL:
             ?
-               PORT_ID: [[0,4], [11,14], [21,25], [33,36], [43,47], [55,58], [65,69], [76,80], [87,91], [99,102], [109,113], [121,124], [131,135], [143,146], [153,157], [165,168], [175,179], [187,190], [197,201], [209,212], [219,223], [231,234], [241,245], [253,256], [263,267], [274,278], [285,289], [297,300], [307,311], [319,322], [329,333], [341,344], 351] 
+               PORT_ID: [[0,4], [11,14], [21,25], [33,36], [43,47], [55,58], [65,69], [76,80], [87,91], [99,102], [109,113], [121,124], [131,135], [143,146], [153,157], [165,168], [175,179], [187,190], [197,201], [209,212], [219,223], [231,234], [241,245], [253,256], [263,267], [274,278], [285,289], [297,300], [307,311], [319,322], [329,333], [341,344], 351]
                TM_ING_SERVICE_POOL_ID: [[0,3]]
             :
                 MIN_GUARANTEE_CELLS: 0
@@ -1624,7 +1610,6 @@ device:
                 EARLY_PFC_XOFF_OFFSET_CELLS: 0
                 EARLY_PFC_XON_OFFSET_CELLS: 0
                 EARLY_PFC_FLOOR_CELLS: 0
-
 ...
 # Output Port Thresholds -2 
 # Per Unicast Queue Thresholds
@@ -1760,7 +1745,6 @@ device:
 
 ...
 ### Begin MMU ingress threshold settings
-
 ### Pools
 ---
 device:
@@ -1781,7 +1765,6 @@ device:
                 SHARED_LIMIT_CELLS: 605
                 SHARED_RESUME_OFFSET_CELLS: 74
                 COLOR_SPECIFIC_LIMITS: 0
-
 
 # Ingress Headroom Pool Thresholds
         TM_ING_THD_HEADROOM_POOL:
@@ -1951,8 +1934,6 @@ device:
                 PRI_GRP_MAP_ID: 0
 
 ...
-
-
 ######################################
 ---
 device:
@@ -2035,8 +2016,6 @@ device:
                 HEADROOM_LIMIT_AUTO: 0
 
 ...
-
-
 ### Egress Service Pools
 ---
 device:
@@ -2116,7 +2095,6 @@ device:
                 RED_SHARED_LIMIT_CELLS: 48
                 RED_SHARED_RESUME_LIMIT_CELLS: 46
 ...
-
 ...
 ### Adaptive Alpha
 ---
@@ -2137,7 +2115,6 @@ device:
                 MARGIN: [16513, 33026, 49539, 66052, 82565, 99078, 115591, 132104, 148617, 165130]
 
 ...
-
 ---
 device:
     0:
@@ -2279,7 +2256,7 @@ device:
                 RED_LIMIT_DYNAMIC: PERCENTAGE_625
                 RESUME_OFFSET_CELLS: 2
 
-#Egress Port Thresholds.
+# Egress Port Thresholds.
         TM_EGR_THD_UC_PORT_SERVICE_POOL:
             ?
                 PORT_ID: [[1,4], [11,14], [21,25], [33,36], [43,47], [55,58], [65,69], [76,80], [87,91], [99,102], [109,113], [121,124], [131,135], [143,146], [153,157], [165,168], [175,179], [187,190], [197,201], [209,212], [219,223], [231,234], [241,245], [253,256], [263,267], [274,278], [285,289], [297,300], [307,311], [319,322], [329,333], [341,344], 351]
@@ -2329,8 +2306,6 @@ device:
                 SHARED_RESUME_LIMIT_CELLS: 73
 
 ...
-
-
 ### PFC mapping
 ---
 device:
@@ -2357,7 +2332,7 @@ device:
 ---
 device:
     0:
-# TM_PFC_PRI_PROFILE is mapped to MMU_INTFI_PFCRPI_PROFILE in physical table. There are 8 profiles to configure the PFC value to COS/priorities mapping. For example, you could map multiple coses to a PFC. This mapping is needed when receiving PFC frames and stopping queues(coses) according to the PFC frame received.      
+# TM_PFC_PRI_PROFILE is mapped to MMU_INTFI_PFCRPI_PROFILE in physical table. There are 8 profiles to configure the PFC value to COS/priorities mapping. For example, you could map multiple coses to a PFC. This mapping is needed when receiving PFC frames and stopping queues(coses) according to the PFC frame received.
         TM_PFC_PRI_PROFILE:
             ?
                 TM_PFC_PRI_PROFILE_ID: 0
@@ -2406,7 +2381,7 @@ device:
                 INGRESS_LIMIT: 0
                 SHARED_LIMIT: 0
 
-        TM_MIRROR_ON_DROP_DESTINATION: 
+        TM_MIRROR_ON_DROP_DESTINATION:
             ?
                 TM_MIRROR_ON_DROP_DESTINATION_ID: 0
             :
@@ -2449,7 +2424,6 @@ device:
             :
                 MIN_GUARANTEE_CELLS: 37
                 MIN_GUARANTEE_PKTS: 7
-
 
         TM_THD_REPL_SERVICE_POOL:
                 SHARED_LIMIT_CELLS: 11153
@@ -2607,5 +2581,4 @@ device:
                 PKT_PRI: [3,4]
             :
                 TRAFFIC_CLASS: OBM_TC_LOSSLESS0
-
 ...
