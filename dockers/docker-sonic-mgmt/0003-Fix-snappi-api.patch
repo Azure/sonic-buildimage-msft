@@ -1,0 +1,23 @@
+From: Vivek Kumar Verma <vivekverma@arista.com>
+Date: Wed May 7 07:12:00 2025 +0000
+Subject: [PATCH 2/2]Fix snappi api to retain group mode based on a flag.
+
+diff --git a/snappi_ixnetwork/snappi_api.py b/snappi_ixnetwork/snappi_api.py
+index 9a0e49b1..c3301cda 100644
+--- a/snappi_ixnetwork/snappi_api.py
++++ b/snappi_ixnetwork/snappi_api.py
+@@ -46,6 +46,7 @@ class Api(snappi.Api):
+         location = kwargs.get("location")
+         username = kwargs.get("username")
+         password = kwargs.get("password")
++        self._retain_group_mode = kwargs.get("retain_group_mode", False)
+         license_servers = kwargs.get("license_servers")
+         self._log_level = logging.INFO if kwargs.get("loglevel") is None \
+             else kwargs.get("loglevel")
+@@ -1135,4 +1136,4 @@ class Api(snappi.Api):
+         self.logger.debug(message)
+ 
+     def warning(self, message):
+-        logging.warning(message)
+\ No newline at end of file
++        logging.warning(message)

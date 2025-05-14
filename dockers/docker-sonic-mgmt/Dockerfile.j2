@@ -269,12 +269,16 @@ USER root
 WORKDIR /azp
 COPY start.sh \
      0001-Fix-getattr-AttributeError-in-multi-thread-scenario.patch \
+     0002-Fix-resource-group.patch \
+     0003-Fix-snappi-api.patch \
      ./
 RUN chmod +x start.sh \
     && ln -sf /usr/bin/python3 /usr/bin/python \
     && ln -sf `which pip3` /usr/bin/pip \
     && ln -sf `which pip3` /usr/local/sbin/pip \
-    && patch -u -b /usr/local/lib/python3.8/dist-packages/ansible/plugins/loader.py -i /azp/0001-Fix-getattr-AttributeError-in-multi-thread-scenario.patch
+    && patch -u -b /usr/local/lib/python3.8/dist-packages/ansible/plugins/loader.py -i /azp/0001-Fix-getattr-AttributeError-in-multi-thread-scenario.patch \
+    && patch -u -b /usr/local/lib/python3.8/dist-packages/snappi_ixnetwork/resourcegroup.py -i /azp/0002-Fix-resource-group.patch \
+    && patch -u -b /usr/local/lib/python3.8/dist-packages/snappi_ixnetwork/snappi_api.py -i /azp/0003-Fix-snappi-api.patch
 
 USER $user
 WORKDIR /var/$user
