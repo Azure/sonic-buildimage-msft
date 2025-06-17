@@ -122,4 +122,5 @@
 0140-zebra-fix-show-route-vrf-all-memory-consumption.patch
 0141-zebra-fix-show-route-memory-consumption.patch
 0142-lib-Return-duplicate-prefix-list-entry-test.patch
-0143-mgmtd-clean-session-config-only-when-it-is-needed.patch
+0144-mgmtd-remove-bogus-hedge-code-which-corrupted-active.patch
+0145-mgmtd-normalize-argument-order-to-copy-dst-src.patch
