@@ -1375,13 +1375,6 @@ device:
                 NUM_LANES: 4
                 FEC_MODE: PC_FEC_RS544_2XN
                 MAX_FRAME_SIZE: 9416
-            ?
-                PORT_ID: [118, 254]
-            :
-                ENABLE: 0
-                SPEED: 10000
-                NUM_LANES: 1
-                MAX_FRAME_SIZE: 9416
 ...
 ---
 bcm_device:
