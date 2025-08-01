@@ -42,9 +42,6 @@ if [ -n "$CERTS" ]; then
     if [ ! -z $CA_CRT ]; then
         TELEMETRY_ARGS+=" --ca_crt $CA_CRT"
     fi
-
-    # Reuse GNMI_CLIENT_CERT for telemetry service
-    TELEMETRY_ARGS+=" --config_table_name GNMI_CLIENT_CERT"
 elif [ -n "$X509" ]; then
     SERVER_CRT=$(extract_field "$X509" '.server_crt')
     SERVER_KEY=$(extract_field "$X509" '.server_key')

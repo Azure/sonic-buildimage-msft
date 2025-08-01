@@ -43,7 +43,6 @@ if [ -n "$CERTS" ]; then
         TELEMETRY_ARGS+=" --ca_crt $CA_CRT"
     fi
 
-    TELEMETRY_ARGS+=" --config_table_name GNMI_CLIENT_CERT"
 elif [ -n "$X509" ]; then
     SERVER_CRT=$(extract_field "$X509" '.server_crt')
     SERVER_KEY=$(extract_field "$X509" '.server_key')
