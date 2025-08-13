@@ -1333,6 +1333,10 @@ The FG_NHG_PREFIX table provides the FG_NHG_PREFIX for which FG behavior is desi
 		"WRED_ECN_PORT": {
 			"FLEX_COUNTER_STATUS": "enable",
 			"POLL_INTERVAL": "1000"
+		},
+		"SWITCH": {
+			"FLEX_COUNTER_STATUS": "enable",
+			"POLL_INTERVAL": "1000"
 		}
 	}
 }
