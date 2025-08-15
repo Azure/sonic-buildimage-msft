@@ -80,6 +80,7 @@ stages:
           INCLUDE_RESTAPI: y
       - name: mellanox
         variables:
+          ss_image: yes
           dbg_image: yes
           docker_syncd_rpc_image: yes
           platform_rpc: mlnx
@@ -95,7 +96,10 @@ stages:
           PLATFORM_NAME: marvell-prestera
           PLATFORM_ARCH: armhf
           INCLUDE_RESTAPI: y
-
+      - name: nvidia-bluefield
+        pool: sonicbld-arm64
+        variables:
+          PLATFORM_ARCH: arm64
 - stage: Test
   dependsOn: BuildVS
   condition: and(succeeded(), and(ne(stageDependencies.BuildVS.outputs['vs.SetVar.SKIP_VSTEST'], 'YES'), in(dependencies.BuildVS.result, 'Succeeded', 'SucceededWithIssues')))
