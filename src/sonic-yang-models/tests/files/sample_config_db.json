@@ -2848,6 +2848,29 @@
             "ASIC_SENSORS_POLLER_STATUS": {
                 "admin_status": "enable"
             }
+        },
+        "HIGH_FREQUENCY_TELEMETRY_PROFILE": {
+            "dummy": {
+                "stream_state": "disabled",
+                "poll_interval": "100000"
+            },
+            "hft_profile": {
+                "stream_state": "enabled",
+                "poll_interval": "100000"
+            }
+        },
+        "HIGH_FREQUENCY_TELEMETRY_GROUP": {
+            "dummy|PORT": {},
+            "hft_profile|PORT": {
+                "object_names": [
+                    "Ethernet0",
+                    "Ethernet4"
+                ],
+                "object_counters": [
+                    "IF_IN_OCTETS",
+                    "OUT_CURR_OCCUPANCY_BYTES"
+                ]
+            }
         }
     },
     "SAMPLE_CONFIG_DB_UNKNOWN": {
