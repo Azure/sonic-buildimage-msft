@@ -26,3 +26,4 @@ INTeRrupt ENAble id=1662
 
 INTeRrupt ENAble id=1093
 debug intr error
+Modreg FMAC_RSF_CONFIGURATION RSF_N_RX_ERR_MARK_EN=1

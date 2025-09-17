@@ -1,5 +1,6 @@
 appl_param_module_id=306
 system_ref_core_clock_khz=1600000
+sai_postinit_cmd_file=/usr/share/sonic/hwsku/sai_postinit_cmd.soc
 
 dpp_db_path=/usr/share/bcm/db
 port_init_cl72=1
