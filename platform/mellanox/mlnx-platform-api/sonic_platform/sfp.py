@@ -448,7 +448,7 @@ class SFP(NvidiaSFPCommon):
             return False
         eeprom_raw = self.read_eeprom(0, 1, log_on_error=False)
         if eeprom_raw is None:
-            logger.log_error(f'SFP {self.sdk_index} Module was plugged out')
+            logger.log_error(f'SFP {self.sdk_index} was plugged out')
         return eeprom_raw is not None
     
     @classmethod
