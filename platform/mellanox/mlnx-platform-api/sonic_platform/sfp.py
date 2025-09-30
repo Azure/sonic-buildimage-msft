@@ -466,10 +466,9 @@ class SFP(NvidiaSFPCommon):
         for s in not_ready_list:
             logger.log_error(f'SFP {s.sdk_index} eeprom is not ready')
 
-    # read eeprom specfic bytes beginning from offset with size as num_bytes
     def read_eeprom(self, offset, num_bytes, log_on_error=True):
         """
-        Read eeprom specfic bytes beginning from a random offset with size as num_bytes. Tries up to 50 times total on every 0.1s.
+        Read eeprom specific bytes beginning from a random offset with size as num_bytes. Tries up to 50 times total on every 0.1s.
         Returns:
             bytearray, if raw sequence of bytes are read correctly from the offset of size num_bytes
             None, if the read_eeprom fails
@@ -496,7 +495,7 @@ class SFP(NvidiaSFPCommon):
 
     def _read_eeprom(self, offset, num_bytes, log_on_error=True):
         """
-        Single-attempt read: Read eeprom specfic bytes beginning from a random offset with size as num_bytes
+        Single-attempt read: Read eeprom specific bytes beginning from a random offset with size as num_bytes
 
         Args:
             offset (int): read offset
@@ -550,10 +549,9 @@ class SFP(NvidiaSFPCommon):
 
         return bytearray(result)
 
-    # write eeprom specfic bytes beginning from offset with size as num_bytes
     def write_eeprom(self, offset, num_bytes, write_buffer):
         """
-        write eeprom specfic bytes beginning from a random offset with size as num_bytes
+        write eeprom specific bytes beginning from a random offset with size as num_bytes
         and write_buffer as the required bytes. Tries up to 50 times total on every 0.1s.
         Returns:
             Boolean, true if the write succeeded and false if it did not succeed.
@@ -578,13 +576,13 @@ class SFP(NvidiaSFPCommon):
 
         logger.log_error(
             f"EEPROM write failed after {MAX_ATTEMPTS} attempts "
-            f"for sfp={getattr(self, 'sdk_index', 'N/A')}, offset={offset}, size={num_bytes}"
+            f"for sfp={self.sdk_index}, offset={offset}, size={num_bytes}"
         )
         return False
 
     def _write_eeprom(self, offset, num_bytes, write_buffer):
         """
-        Single-attempt write: write eeprom specfic bytes beginning from a random offset with size as num_bytes
+        Single-attempt write: write eeprom specific bytes beginning from a random offset with size as num_bytes
         and write_buffer as the required bytes
         Returns:
             Boolean, true if the write succeeded and false if it did not succeed.
