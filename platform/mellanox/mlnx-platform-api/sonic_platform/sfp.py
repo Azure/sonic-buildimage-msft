@@ -448,7 +448,7 @@ class SFP(NvidiaSFPCommon):
         presence_sysfs = f'/sys/module/sx_core/asic0/module{self.sdk_index}/hw_present' if self.is_sw_control() else f'/sys/module/sx_core/asic0/module{self.sdk_index}/present'
         if utils.read_int_from_file(presence_sysfs) != 1:
             return False
-        eeprom_raw = self.read_eeprom(0, 1, log_on_error=False)
+        eeprom_raw = self.read_eeprom(0, 1, log_on_error=True)
         if eeprom_raw is None:
             logger.log_error(f'SFP {self.sdk_index} was plugged out')
         return eeprom_raw is not None
@@ -510,10 +510,9 @@ class SFP(NvidiaSFPCommon):
                     f"(sfp={self.sdk_index}, offset={offset}, size={num_bytes})")
             return None
 
-        if log_on_error:
-            logger.log_error(
-                f"EEPROM read failed after {MAX_ATTEMPTS} attempts "
-                f"(sfp={self.sdk_index}, offset={offset}, size={num_bytes})")
+        logger.log_error(
+            f"EEPROM read failed after {MAX_ATTEMPTS} attempts "
+            f"(sfp={self.sdk_index}, offset={offset}, size={num_bytes})")
         return None
 
     def _read_eeprom(self, offset, num_bytes, log_on_error=True):
