@@ -121,8 +121,8 @@
 	branch = 202506
 [submodule "src/sonic-gnmi"]
 	path = src/sonic-gnmi
-	url = https://github.com/sonic-net/sonic-gnmi.git
-	branch = 202505
+	url = https://github.com/Azure/sonic-gnmi.msft
+	branch = 202506
 [submodule "src/sonic-bmp"]
 	path = src/sonic-bmp
 	url = https://github.com/sonic-net/sonic-bmp.git
