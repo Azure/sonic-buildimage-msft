@@ -23,6 +23,12 @@ $(SUPERVISOR_PROC_EXIT_LISTENER_SCRIPT)_PATH = files/scripts
 SYSCTL_NET_CONFIG = sysctl-net.conf
 $(SYSCTL_NET_CONFIG)_PATH = files/image_config/sysctl
 
+CONTAINER_CHECKER = container_checker
+$(CONTAINER_CHECKER)_PATH = files/image_config/monit
+
+TELEMETRY_SYSTEMD = telemetry.sh
+$(TELEMETRY_SYSTEMD)_PATH = files/scripts
+
 UPDATE_CHASSISDB_CONFIG_SCRIPT = update_chassisdb_config
 $(UPDATE_CHASSISDB_CONFIG_SCRIPT)_PATH = files/scripts
 
@@ -43,6 +49,8 @@ SONIC_COPY_FILES += $(CONFIGDB_LOAD_SCRIPT) \
                     $(CBF_CONFIG_TEMPLATE) \
                     $(SUPERVISOR_PROC_EXIT_LISTENER_SCRIPT) \
                     $(SYSCTL_NET_CONFIG) \
+                    $(CONTAINER_CHECKER) \
+                    $(TELEMETRY_SYSTEMD) \
                     $(UPDATE_CHASSISDB_CONFIG_SCRIPT) \
                     $(SWSS_VARS_TEMPLATE) \
                     $(RSYSLOG_PLUGIN_CONF_J2) \
