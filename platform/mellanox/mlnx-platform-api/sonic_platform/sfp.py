@@ -446,12 +446,7 @@ class SFP(NvidiaSFPCommon):
             bool: True if device is present, False if not
         """
         presence_sysfs = f'/sys/module/sx_core/asic0/module{self.sdk_index}/hw_present' if self.is_sw_control() else f'/sys/module/sx_core/asic0/module{self.sdk_index}/present'
-        if utils.read_int_from_file(presence_sysfs) != 1:
-            return False
-        eeprom_raw = self.read_eeprom(0, 1, log_on_error=True)
-        if eeprom_raw is None:
-            logger.log_error(f'SFP {self.sdk_index} was plugged out')
-        return eeprom_raw is not None
+        return utils.read_int_from_file(presence_sysfs) == 1
     
     @classmethod
     def wait_sfp_eeprom_ready(cls, sfp_list, wait_time):
