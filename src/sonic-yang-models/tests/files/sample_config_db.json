@@ -2844,6 +2844,17 @@
             "ASIC_SENSORS_POLLER_STATUS": {
                 "admin_status": "enable"
             }
+        },
+        "ZTP" : {
+            "mode" : {
+                "profile" : "active",
+                "inband" : "true",
+                "out-of-band" : "true",
+                "ipv4" : "true",
+                "ipv6" : "true",
+                "product-name" : "product name",
+                "serial-no" : "1234-5678-91A"
+            }
         }
     },
     "SAMPLE_CONFIG_DB_UNKNOWN": {
