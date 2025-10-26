@@ -1,0 +1,3 @@
+0x7efce15f	wb_pinctrl_probe	/sonic/platform/broadcom/sonic-platform-modules-micas/common/modules/pinctrl/wb_pinctrl_intel	EXPORT_SYMBOL_GPL	
+0x775963d3	wb_intel_pinctrl_suspend_noirq	/sonic/platform/broadcom/sonic-platform-modules-micas/common/modules/pinctrl/wb_pinctrl_intel	EXPORT_SYMBOL_GPL	
+0x1c8586c6	wb_intel_pinctrl_resume_noirq	/sonic/platform/broadcom/sonic-platform-modules-micas/common/modules/pinctrl/wb_pinctrl_intel	EXPORT_SYMBOL_GPL	

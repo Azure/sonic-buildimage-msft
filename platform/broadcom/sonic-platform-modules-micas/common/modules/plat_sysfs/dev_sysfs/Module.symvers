@@ -1,0 +1,2 @@
+0x8d28ab7a	wb_plat_kobject_create	/sonic/platform/broadcom/sonic-platform-modules-micas/common/modules/plat_sysfs/dev_sysfs/plat_switch	EXPORT_SYMBOL	
+0xc631d04d	wb_plat_kobject_delete	/sonic/platform/broadcom/sonic-platform-modules-micas/common/modules/plat_sysfs/dev_sysfs/plat_switch	EXPORT_SYMBOL	

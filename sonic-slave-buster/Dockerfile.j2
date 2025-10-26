@@ -18,7 +18,7 @@ COPY --from=qemu /usr/bin/qemu-aarch64-static /usr/bin
 FROM {{ prefix }}debian:buster
 {%- endif %}
 
-MAINTAINER gulv@microsoft.com
+LABEL maintainer="gulv@microsoft.com"
 
 COPY ["no-check-valid-until", "/etc/apt/apt.conf.d/"]
 COPY ["apt-retries-count", "/etc/apt/apt.conf.d"]
@@ -605,7 +605,7 @@ EXPOSE 22
 
 # Install depot-tools (for git-retry)
 RUN git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git /usr/share/depot_tools
-ENV PATH /usr/share/depot_tools:$PATH
+ENV PATH=/usr/share/depot_tools:$PATH
 
 # Install dependencies for dhcp relay test
 RUN pip3 install parameterized==0.8.1

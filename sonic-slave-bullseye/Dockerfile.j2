@@ -19,7 +19,7 @@ COPY --from=qemu /usr/bin/qemu-aarch64-static /usr/bin
 FROM {{ prefix }}debian:bullseye
 {%- endif %}
 
-MAINTAINER gulv@microsoft.com
+LABEL maintainer="gulv@microsoft.com"
 
 COPY ["no-check-valid-until", "/etc/apt/apt.conf.d/"]
 COPY ["apt-retries-count", "/etc/apt/apt.conf.d"]

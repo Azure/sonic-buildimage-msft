@@ -1,0 +1,11 @@
+/sonic/platform/broadcom/sonic-platform-modules-micas/common/modules/plat_sysfs/dev_cfg/dfd_module.o
+/sonic/platform/broadcom/sonic-platform-modules-micas/common/modules/plat_sysfs/dev_cfg/dfd_fan_driver.o
+/sonic/platform/broadcom/sonic-platform-modules-micas/common/modules/plat_sysfs/dev_cfg/dfd_slot_driver.o
+/sonic/platform/broadcom/sonic-platform-modules-micas/common/modules/plat_sysfs/dev_cfg/dfd_sensors_driver.o
+/sonic/platform/broadcom/sonic-platform-modules-micas/common/modules/plat_sysfs/dev_cfg/dfd_psu_driver.o
+/sonic/platform/broadcom/sonic-platform-modules-micas/common/modules/plat_sysfs/dev_cfg/dfd_sff_driver.o
+/sonic/platform/broadcom/sonic-platform-modules-micas/common/modules/plat_sysfs/dev_cfg/cfg/dfd_cfg.o
+/sonic/platform/broadcom/sonic-platform-modules-micas/common/modules/plat_sysfs/dev_cfg/cfg/dfd_cfg_adapter.o
+/sonic/platform/broadcom/sonic-platform-modules-micas/common/modules/plat_sysfs/dev_cfg/cfg/dfd_cfg_file.o
+/sonic/platform/broadcom/sonic-platform-modules-micas/common/modules/plat_sysfs/dev_cfg/cfg/dfd_cfg_info.o
+/sonic/platform/broadcom/sonic-platform-modules-micas/common/modules/plat_sysfs/dev_cfg/cfg/dfd_cfg_listnode.o

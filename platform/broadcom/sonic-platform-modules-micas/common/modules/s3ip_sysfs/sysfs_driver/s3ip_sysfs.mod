@@ -1,0 +1,14 @@
+/sonic/platform/broadcom/sonic-platform-modules-micas/common/modules/s3ip_sysfs/sysfs_driver/switch.o
+/sonic/platform/broadcom/sonic-platform-modules-micas/common/modules/s3ip_sysfs/sysfs_driver/cpld_sysfs.o
+/sonic/platform/broadcom/sonic-platform-modules-micas/common/modules/s3ip_sysfs/sysfs_driver/curr_sensor_sysfs.o
+/sonic/platform/broadcom/sonic-platform-modules-micas/common/modules/s3ip_sysfs/sysfs_driver/fan_sysfs.o
+/sonic/platform/broadcom/sonic-platform-modules-micas/common/modules/s3ip_sysfs/sysfs_driver/fpga_sysfs.o
+/sonic/platform/broadcom/sonic-platform-modules-micas/common/modules/s3ip_sysfs/sysfs_driver/psu_sysfs.o
+/sonic/platform/broadcom/sonic-platform-modules-micas/common/modules/s3ip_sysfs/sysfs_driver/slot_sysfs.o
+/sonic/platform/broadcom/sonic-platform-modules-micas/common/modules/s3ip_sysfs/sysfs_driver/sysled_sysfs.o
+/sonic/platform/broadcom/sonic-platform-modules-micas/common/modules/s3ip_sysfs/sysfs_driver/temp_sensor_sysfs.o
+/sonic/platform/broadcom/sonic-platform-modules-micas/common/modules/s3ip_sysfs/sysfs_driver/transceiver_sysfs.o
+/sonic/platform/broadcom/sonic-platform-modules-micas/common/modules/s3ip_sysfs/sysfs_driver/vol_sensor_sysfs.o
+/sonic/platform/broadcom/sonic-platform-modules-micas/common/modules/s3ip_sysfs/sysfs_driver/watchdog_sysfs.o
+/sonic/platform/broadcom/sonic-platform-modules-micas/common/modules/s3ip_sysfs/sysfs_driver/system_sysfs.o
+/sonic/platform/broadcom/sonic-platform-modules-micas/common/modules/s3ip_sysfs/sysfs_driver/eeprom_sysfs.o
