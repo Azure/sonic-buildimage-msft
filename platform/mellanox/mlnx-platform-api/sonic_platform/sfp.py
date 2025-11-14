@@ -42,6 +42,19 @@ try:
 except ImportError as e:
     raise ImportError (str(e) + "- required module not found")
 
+try:
+    import sys
+    sys.path.append('/run/hw-management/bin')
+    import hw_management_independent_mode_update
+except ImportError:
+    # Only mock if running under pytest (check if pytest is imported)
+    if 'pytest' in sys.modules:
+        from unittest import mock
+        hw_management_independent_mode_update = mock.MagicMock()
+        hw_management_independent_mode_update.vendor_data_set_module = mock.MagicMock()
+    else:
+        raise
+
 # Define the sdk constants
 SX_PORT_MODULE_STATUS_INITIALIZING = 0
 SX_PORT_MODULE_STATUS_PLUGGED = 1
@@ -426,6 +439,9 @@ class SFP(NvidiaSFPCommon):
         self.sn = None
         self.temp_high_threshold = None
         self.temp_critical_threshold = None
+        self.manufacturer = None
+        self.part_number = None
+        self.retry_read_vendor = 5
 
     def __str__(self):
         return f'SFP {self.sdk_index}'
@@ -981,12 +997,60 @@ class SFP(NvidiaSFPCommon):
         sn = self._get_serial()
         if sn != self.sn:
             self.reinit()
+            # Clear cached vendor info so a new module will be re-read
+            self.manufacturer = None
+            self.part_number = None
+            self.retry_read_vendor = 5
             self.sn = self._get_serial()
             self.temp_high_threshold = None
             self.temp_critical_threshold = None
             return True
         return False
-            
+
+    def get_vendor_info(self):
+        """Get SFP vendor info (manufacturer and part number).
+        Reads fields via xcvr_eeprom to avoid manual offset logic.
+        Uses cache to avoid redundant reads. Retries are aligned with threshold retry style
+        using a stateful counter across invocations.
+        Returns:
+            tuple: (manufacturer, part_number) or (None, None) if read fails
+        """
+        try:
+            display_idx = self.sdk_index + 1
+            if self.manufacturer is not None and self.part_number is not None:
+                return self.manufacturer, self.part_number
+
+            api = self.get_xcvr_api()
+            if not api or api.xcvr_eeprom is None:
+                return None, None
+
+            # Single-attempt per call; subsequent calls will retry while counter > 0
+            try:
+                manufacturer = api.xcvr_eeprom.read(consts.VENDOR_NAME_FIELD)
+                part_number = api.xcvr_eeprom.read(consts.VENDOR_PART_NO_FIELD)
+                logger.log_debug(f"SFP {display_idx} vendor info read: manufacturer='{manufacturer}', part_number='{part_number}'")
+            except Exception as e:
+                logger.log_debug(f"SFP {display_idx} vendor info read failed: {e}")
+                manufacturer = None
+                part_number = None
+
+            if manufacturer and part_number:
+                self.manufacturer = manufacturer
+                self.part_number = part_number
+                # Stop retrying after success
+                self.retry_read_vendor = 0
+                return manufacturer, part_number
+
+            # Defer retry to subsequent calls, aligned with threshold retry logic
+            if self.retry_read_vendor > 0:
+                self.retry_read_vendor -= 1
+                if self.retry_read_vendor == 0:
+                    logger.log_notice(f"SFP {display_idx}: vendor info unavailable after retries")
+
+            return None, None
+        except Exception:
+            return None, None
+
     def get_temperature_info(self):
         """Get SFP temperature info in a fast way. This function is faster than calling following functions one by one: get_temperature, get_temperature_warning_threshold, get_temperature_critical_threshold.
 
@@ -994,11 +1058,27 @@ class SFP(NvidiaSFPCommon):
             tuple: (temperature, warning_threshold, critical_threshold)
         """
         try:
+            sn_changed = self.reinit_if_sn_changed()
+            if sn_changed:
+                # On module change, publish vendor info to hw-management
+                try:
+                    manufacturer, part_number = self.get_vendor_info()
+                    if manufacturer and part_number:
+                        vendor_info = {'manufacturer': manufacturer, 'part_number': part_number}
+                        hw_management_independent_mode_update.vendor_data_set_module(
+                            0,  # ASIC index always 0 for now
+                            self.sdk_index + 1,
+                            vendor_info
+                        )
+                        logger.log_notice(f'Module {self.sdk_index + 1} vendor info updated - '
+                                          f'manufacturer: {manufacturer} part_number: {part_number}')
+                except Exception as e:
+                    logger.log_warning(f'Failed to publish vendor info for SFP {self.sdk_index + 1} - {e}')
+
             sw_control = self.is_sw_control()
             if not sw_control:
                 return sw_control, None, None, None
 
-            sn_changed = self.reinit_if_sn_changed()
             # software control, read from EEPROM
             temperature = super().get_temperature()
             if temperature is None:
