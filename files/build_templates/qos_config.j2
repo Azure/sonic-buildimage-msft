@@ -395,7 +395,8 @@
             "scheduler": "scheduler.1",
             {% endif -%}
             "wred_profile": "AZURE_LOSSLESS"
-        },
+        }{% if not loop.last %},{% endif %}
+
 {% endfor %}
 {% for system_port in SYSTEM_PORT_ALL %}
         "{{ system_port }}|4": {
@@ -403,7 +404,8 @@
             "scheduler": "scheduler.1",
             {% endif -%}
             "wred_profile": "AZURE_LOSSLESS"
-        },
+        }{% if not loop.last %},{% endif %}
+
 {% endfor %}
 {% for system_port in SYSTEM_PORT_ACTIVE %}
         "{{ system_port }}|0": {
