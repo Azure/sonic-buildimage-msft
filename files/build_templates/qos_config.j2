@@ -27,9 +27,9 @@
         {%- endif %}
 {#- find all system_port_name has hostname|asicname. If it is true, get the portname and check if the port name is present in the deviceNeighbor -#}
             {%- if hostname != "" and asicname != "" -%}
-                {%- if system_port_name.startswith(hostname + '|' + asicname) -%}
+                {%- if system_port_name.lower().startswith((hostname + '|' + asicname).lower()) -%}
                     {%- set port_name = system_port_name.split('|')[2] -%}
-                    {%- if DEVICE_NEIGHBOR is defined and port_name in DEVICE_NEIGHBOR -%}
+                    {%- if DEVICE_NEIGHBOR is defined and port_name in DEVICE_NEIGHBOR.keys() -%}
                         {%- if SYSTEM_PORT_ACTIVE.append(system_port_name) %}{%- endif -%}
                     {%- endif -%}
                 {%- endif -%}
@@ -395,17 +395,15 @@
             "scheduler": "scheduler.1",
             {% endif -%}
             "wred_profile": "AZURE_LOSSLESS"
-        }{% if not loop.last %},{% endif %}
-
-{% endfor %}
-{% for system_port in SYSTEM_PORT_ALL %}
+        },
         "{{ system_port }}|4": {
             {% if system_port in SYSTEM_PORT_ACTIVE -%}
             "scheduler": "scheduler.1",
             {% endif -%}
             "wred_profile": "AZURE_LOSSLESS"
-        }{% if not loop.last %},{% endif %}
-
+        }{% if not loop.last %},{% else %}
+            {% if SYSTEM_PORT_ACTIVE and SYSTEM_PORT_ACTIVE|length > 0 %},{% endif %}
+        {% endif %}
 {% endfor %}
 {% for system_port in SYSTEM_PORT_ACTIVE %}
         "{{ system_port }}|0": {
