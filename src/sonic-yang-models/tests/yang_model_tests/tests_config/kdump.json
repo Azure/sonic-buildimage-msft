@@ -49,7 +49,7 @@
                 "config": {
                     "enabled": "true",
                     "num_dumps": "3",
-                    "memory": "1G,high",
+                    "memory": "1G,high"
                 }
             }
         }
@@ -60,7 +60,7 @@
                 "config": {
                     "enabled": "true",
                     "num_dumps": "3",
-                    "memory": "512M,high",
+                    "memory": "512M,high"
                 }
             }
         }
@@ -93,7 +93,7 @@
                 "config": {
                     "enabled": "true",
                     "num_dumps": "3",
-                    "memory": "100,high",
+                    "memory": "100,high"
                 }
             }
         }
@@ -104,7 +104,7 @@
                 "config": {
                     "enabled": "true",
                     "num_dumps": "3",
-                    "memory": "1G,highx",
+                    "memory": "1G,highx"
                 }
             }
         }

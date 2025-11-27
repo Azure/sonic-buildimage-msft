@@ -27,10 +27,10 @@
     },
     "KDUMP_WITH_INVALID_MEM_HIGH": {
         "desc": "Configuring kdump config with invalid value.",
-        "eStr": ["Pattern", "does not satisfy"]
+        "eStr": ["pattern", "does not satisfy"]
     },
     "KDUMP_WITH_INVALID_MEM_HIGH_2": {
         "desc": "Configuring kdump config with invalid suffix.",
-        "eStr": ["Pattern", "does not satisfy"]
+        "eStr": ["pattern", "does not satisfy"]
     }
 }
