@@ -19,11 +19,7 @@
 		    "red_action":"drop"
 	    },
 	    "queue4_group2": {
-{% if DEVICE_METADATA is defined and DEVICE_METADATA['localhost'] is defined and DEVICE_METADATA['localhost']['type'] is defined and 'ToRRouter' in DEVICE_METADATA['localhost']['type'] and DEVICE_METADATA['localhost']['subtype'] is defined and 'DualToR' in DEVICE_METADATA['localhost']['subtype'] %}
-		    "trap_action":"trap",
-{% else %}
 		    "trap_action":"copy",
-{% endif %}
 		    "trap_priority":"4",
 		    "queue": "4",
 		    "meter_type":"packets",
