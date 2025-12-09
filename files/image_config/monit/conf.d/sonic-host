@@ -61,3 +61,9 @@ check program memory_check with path "/usr/local/bin/memory_threshold_check.py"
 check program mgmtOperStatus with path "/usr/bin/mgmt_oper_status.py"
     every 1 cycles
     if status != 0 for 3 cycle then alert repeat every 1 cycles
+
+# chassis db check to check the consistency between entries in chassis APP DB and
+# local ASIC db.
+check program chassisDbConsistency with path "/usr/local/bin/chassis_db_consistency_checker.py"
+    every 5 cycles
+    if status != 0 for 3 cycles then alert repeat every 1 cycles
