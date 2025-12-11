@@ -911,11 +911,31 @@ regular_install() {
     run_hooks post-install
 }
 
+run_quirks() {
+    # only run in Aboot
+    if $in_aboot && [ -f "/etc/cmdline" ]; then
+        if in_array "$aboot_machine" "arista_7800r3a_36p_lc" "arista_7800r3a_36d_lc" \
+                                     "arista_7800r3a_36d2_lc" "arista_7800r3ak_36d2_lc" \
+                                     "arista_7800r3a_36dm2_lc" "arista_7800r3ak_36dm2_lc"; then
+            info "Arming watchdog for 60s"
+            setpci -s 08:00.0 COMMAND=0002
+            addr=$(( 0x$(setpci -s 08:00.0 BASE_ADDRESS_0) + 0x120 ))
+            devmem "$addr" 32 0xc0002328
+        elif in_array "$aboot_machine" "arista_7800r3_48cq2_lc" "arista_7800r3_48cqm2_lc"; then
+            info "Arming watchdog for 60s"
+            setpci -s 07:00.0 COMMAND=0002
+            addr=$(( 0x$(setpci -s 07:00.0 BASE_ADDRESS_0) + 0x120 ))
+            devmem "$addr" 32 0xc0002328
+        fi
+    fi
+}
+
 secureboot_boot() {
     # boot material is extracted and generated in RAM.
     # SONiC starts as a live OS.
     info "Preparing image for secureboot"
     prepare_image_secureboot
+    run_quirks
     update_next_boot
     run_kexec
 }
@@ -924,6 +944,7 @@ regular_boot() {
     # boot uses the image installed on the flash
     write_regular_configs "$image_path"
     run_hooks pre-kexec
+    run_quirks
     update_next_boot
     run_kexec
 }
