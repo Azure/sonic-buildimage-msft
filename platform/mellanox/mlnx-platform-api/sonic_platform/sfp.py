@@ -1000,8 +1000,11 @@ class SFP(NvidiaSFPCommon):
             # Clear cached vendor info so a new module will be re-read
             self.manufacturer = None
             self.part_number = None
-            self.retry_read_vendor = 5
             self.sn = self._get_serial()
+            if self.sn is not None:
+                self.retry_read_vendor = 5
+            else:
+                self.retry_read_vendor = 0
             self.temp_high_threshold = None
             self.temp_critical_threshold = None
             return True
@@ -1010,8 +1013,7 @@ class SFP(NvidiaSFPCommon):
     def get_vendor_info(self):
         """Get SFP vendor info (manufacturer and part number).
         Reads fields via xcvr_eeprom to avoid manual offset logic.
-        Uses cache to avoid redundant reads. Retries are aligned with threshold retry style
-        using a stateful counter across invocations.
+        Uses cache to avoid redundant reads.
         Returns:
             tuple: (manufacturer, part_number) or (None, None) if read fails
         """
@@ -1024,28 +1026,19 @@ class SFP(NvidiaSFPCommon):
             if not api or api.xcvr_eeprom is None:
                 return None, None
 
-            # Single-attempt per call; subsequent calls will retry while counter > 0
             try:
                 manufacturer = api.xcvr_eeprom.read(consts.VENDOR_NAME_FIELD)
                 part_number = api.xcvr_eeprom.read(consts.VENDOR_PART_NO_FIELD)
-                logger.log_debug(f"SFP {display_idx} vendor info read: manufacturer='{manufacturer}', part_number='{part_number}'")
+                logger.log_info(f"SFP {display_idx} vendor info read: manufacturer='{manufacturer}', part_number='{part_number}'")
             except Exception as e:
-                logger.log_debug(f"SFP {display_idx} vendor info read failed: {e}")
+                logger.log_error(f"SFP {display_idx} vendor info read failed: {e}")
                 manufacturer = None
                 part_number = None
 
             if manufacturer and part_number:
                 self.manufacturer = manufacturer
                 self.part_number = part_number
-                # Stop retrying after success
-                self.retry_read_vendor = 0
                 return manufacturer, part_number
-
-            # Defer retry to subsequent calls, aligned with threshold retry logic
-            if self.retry_read_vendor > 0:
-                self.retry_read_vendor -= 1
-                if self.retry_read_vendor == 0:
-                    logger.log_notice(f"SFP {display_idx}: vendor info unavailable after retries")
 
             return None, None
         except Exception:
@@ -1059,8 +1052,7 @@ class SFP(NvidiaSFPCommon):
         """
         try:
             sn_changed = self.reinit_if_sn_changed()
-            if sn_changed:
-                # On module change, publish vendor info to hw-management
+            if self.retry_read_vendor > 0:
                 try:
                     manufacturer, part_number = self.get_vendor_info()
                     if manufacturer and part_number:
@@ -1072,8 +1064,16 @@ class SFP(NvidiaSFPCommon):
                         )
                         logger.log_notice(f'Module {self.sdk_index + 1} vendor info updated - '
                                           f'manufacturer: {manufacturer} part_number: {part_number}')
+                        self.retry_read_vendor = 0
+                    else:
+                        self.retry_read_vendor -= 1
+                        if self.retry_read_vendor == 0:
+                            logger.log_notice(f"SFP {self.sdk_index + 1}: vendor info unavailable after retries")
                 except Exception as e:
                     logger.log_warning(f'Failed to publish vendor info for SFP {self.sdk_index + 1} - {e}')
+                    self.retry_read_vendor -= 1
+                    if self.retry_read_vendor == 0:
+                        logger.log_notice(f"SFP {self.sdk_index + 1}: vendor info unavailable after retries")
 
             sw_control = self.is_sw_control()
             if not sw_control:

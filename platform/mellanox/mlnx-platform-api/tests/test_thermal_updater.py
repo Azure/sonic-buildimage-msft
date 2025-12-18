@@ -116,6 +116,7 @@ class TestThermalUpdater:
         from sonic_platform.sfp import SFP as _SFP
         sfp = object.__new__(_SFP)
         sfp.sdk_index = 10
+        sfp.retry_read_vendor = 5 if sn_changed else 0
         sfp.is_sw_control = mock.MagicMock(return_value=True)
         sfp.reinit_if_sn_changed = mock.MagicMock(return_value=sn_changed)
         if vendor is None:
