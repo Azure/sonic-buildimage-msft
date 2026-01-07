@@ -6,3 +6,5 @@ systemd/opennsl-modules.service lib/systemd/system
 sdklt/build/bde/linux_ngbde.ko lib/modules/6.1.0-29-2-amd64/extra
 sdklt/build/knet/linux_ngknet.ko lib/modules/6.1.0-29-2-amd64/extra
 sdklt/build/knetcb/linux_ngknetcb.ko lib/modules/6.1.0-29-2-amd64/extra
+sdklt/build/edk/linux_ngedk.ko     lib/modules/6.1.0-29-2-amd64/extra
+sdklt/build/st/linux_ngst.ko       lib/modules/6.1.0-29-2-amd64/extra
