@@ -31,7 +31,7 @@
 #include <linux/types.h>
 
 #define NGST_GENL_VERSION 1
-#define NGST_GENL_FAMILY_NAME "brcm_stel"
+#define NGST_GENL_FAMILY_NAME "sonic_stel"
 #define NGST_GENL_MCGRP_NAME "ipfix"
 
 enum ngst_genl_cmds {

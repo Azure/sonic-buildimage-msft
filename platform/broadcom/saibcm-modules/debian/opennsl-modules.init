@@ -24,8 +24,8 @@ function create_devices()
         mknod /dev/linux_ngbde       c 120 0
         mknod /dev/linux_ngknet      c 121 0
         mknod /dev/linux_ngknetcb    c 122 0
-        mknod /dev/linux_ngst        c 123 0
-        mknod /dev/linux_ngedk       c 124 0
+        mknod /dev/linux_ngst        c 61 0
+        mknod /dev/linux_ngedk       c 119 0
     else
         rm -f /dev/linux-knet-cb
         rm -f /dev/linux-bcm-knet
