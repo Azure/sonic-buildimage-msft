@@ -1,6 +1,6 @@
 ##
 ## SPDX-FileCopyrightText: NVIDIA CORPORATION & AFFILIATES
-## Copyright (c) 2016-2025 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+## Copyright (c) 2016-2026 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 ## SPDX-License-Identifier: Apache-2.0
 ##
 ## Licensed under the Apache License, Version 2.0 (the "License");
@@ -71,7 +71,6 @@ COPY ["files/supervisor-proc-exit-listener", "/usr/bin"]
 COPY ["critical_processes", "/etc/supervisor/"]
 COPY ["platform_syncd_dump.sh", "/usr/bin/"]
 COPY ["phcsync.sh", "/usr/bin/"]
-RUN chmod +x /usr/bin/phcsync.sh
 
 RUN mkdir -p /etc/mlnx/
 COPY ["sai-common.profile", "/etc/mlnx/"]
