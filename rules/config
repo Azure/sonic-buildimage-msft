@@ -26,7 +26,7 @@ DEFAULT_BUILD_LOG_TIMESTAMP = none
 # This options will speed up docker image build time.
 # NOTE: SONIC_USE_DOCKER_BUILDKIT will produce larger installable SONiC image
 # because of a docker bug (more details: https://github.com/moby/moby/issues/38903)
-# SONIC_USE_DOCKER_BUILDKIT = y
+SONIC_USE_DOCKER_BUILDKIT = y
 
 # SONIC_CONFIG_USE_NATIVE_DOCKERD_FOR_BUILD - use native dockerd for build.
 # If set to y SONiC build container will use native dockerd instead of dind for faster build.
