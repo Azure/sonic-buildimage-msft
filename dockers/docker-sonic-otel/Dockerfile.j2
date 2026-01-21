@@ -62,7 +62,7 @@ COPY ["critical_processes", "/etc/supervisor"]
 
 FROM $BASE
 
-RUN --mount=type=bind,from=base,target=/changes-to-image rsync -axAX --no-D --exclude=/sys --exclude=/proc --exclude=/dev --exclude=resolv.conf /changes-to-image/ /
+COPY --from=base / /
 
 ## Make apt-get non-interactive
 ENV DEBIAN_FRONTEND=noninteractive
@@ -71,4 +71,3 @@ ENV DEBIAN_FRONTEND=noninteractive
 ENV IMAGE_VERSION=$image_version
 
 ENTRYPOINT ["/usr/local/bin/supervisord"]
-
