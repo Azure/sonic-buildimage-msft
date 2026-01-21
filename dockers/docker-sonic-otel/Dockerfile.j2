@@ -60,14 +60,4 @@ RUN chmod +x /usr/bin/start.sh /usr/bin/otel.sh
 COPY ["supervisord.conf", "/etc/supervisor/conf.d/"]
 COPY ["critical_processes", "/etc/supervisor"]
 
-FROM $BASE
-
-COPY --from=base / /
-
-## Make apt-get non-interactive
-ENV DEBIAN_FRONTEND=noninteractive
-
-# Pass the image_version to container
-ENV IMAGE_VERSION=$image_version
-
 ENTRYPOINT ["/usr/local/bin/supervisord"]
