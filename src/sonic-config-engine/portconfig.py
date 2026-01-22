@@ -374,13 +374,19 @@ class BreakoutCfg(object):
 
                 lanes = self._lanes[lane_id:lane_id + lanes_per_port]
 
-                ports[interface_name] = {
+                port_config = {
                     'alias': self._breakout_capabilities[alias_id],
                     'lanes': ','.join(lanes),
                     'speed': str(entry.default_speed),
                     'index': self._indexes[lane_id],
                     'subport': "0" if total_num_ports == 1 else str(alias_id + 1)
                 }
+                
+                # If the lane speed is greater than 50G, enable FEC
+                if entry.default_speed // lanes_per_port >= 50000:
+                    port_config['fec'] = 'rs'
+
+                ports[interface_name] = port_config
 
                 lane_id += lanes_per_port
                 alias_id += 1
