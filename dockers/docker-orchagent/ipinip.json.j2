@@ -66,6 +66,7 @@
         "TUNNEL_DECAP_TABLE:IPINIP_SUBNET" : {
             "tunnel_type":"IPINIP",
             "dscp_mode":"uniform",
+            "decap_dscp_to_tc_map":"AZURE",
 {% if "mlnx" in DEVICE_METADATA.localhost.platform %}
             "ecn_mode":"standard",
 {% else %}
@@ -92,6 +93,7 @@
             "dscp_mode":"pipe",
 {% else %}
             "dscp_mode":"uniform",
+            "decap_dscp_to_tc_map":"AZURE",
 {% endif %}
 {% if "mlnx" in DEVICE_METADATA.localhost.platform %}
             "ecn_mode":"standard",
@@ -123,6 +125,7 @@
         "TUNNEL_DECAP_TABLE:IPINIP_SUBNET_V6" : {
             "tunnel_type":"IPINIP",
             "dscp_mode":"uniform",
+            "decap_dscp_to_tc_map":"AZURE",
 {% if "mlnx" in DEVICE_METADATA.localhost.platform %}
             "ecn_mode":"standard",
 {% else %}
@@ -149,6 +152,7 @@
             "dscp_mode":"pipe",
 {% else %}
             "dscp_mode":"uniform",
+            "decap_dscp_to_tc_map":"AZURE",
 {% endif %}
 {% if "mlnx" in DEVICE_METADATA.localhost.platform %}
             "ecn_mode":"standard",
