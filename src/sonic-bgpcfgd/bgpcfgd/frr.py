@@ -18,17 +18,42 @@ class FRR(object):
         Wait until FRR daemons are ready for requests
         :param seconds: number of seconds to wait, until raise an error
         """
-        stop_time = datetime.datetime.now() + datetime.timedelta(seconds=seconds)
-        log_info("Start waiting for FRR daemons: %s" % str(datetime.datetime.now()))
+        timeout = max(seconds, 120)
+        stop_time = datetime.datetime.now() + datetime.timedelta(seconds=timeout)
+        start_time = datetime.datetime.now()
+
+        log_info("Start waiting for FRR daemons (timeout=%ds): %s" % (timeout, str(start_time)))
+        log_info("Required daemons: %s" % str(self.daemons))
+
+        retry_count = 0
+
         while datetime.datetime.now() < stop_time:
+            retry_count += 1
             ret_code, out, err = run_command(["vtysh", "-c", "show daemons"], hide_errors=True)
+
             if ret_code == 0 and all(daemon in out for daemon in self.daemons):
-                log_info("All required daemons have connected to vtysh: %s" % str(datetime.datetime.now()))
+                elapsed = (datetime.datetime.now() - start_time).total_seconds()
+                log_info("All required daemons have connected to vtysh after %.1fs (attempt %d): %s" %
+                        (elapsed, retry_count, str(datetime.datetime.now())))
                 return
+
+            # Log status on each retry
+            current_time = datetime.datetime.now()
+            elapsed = (current_time - start_time).total_seconds()
+            remaining = (stop_time - current_time).total_seconds()
+
+            if ret_code == 0:
+                found_daemons = [d for d in self.daemons if d in out]
+                missing_daemons = [d for d in self.daemons if d not in out]
+                log_warn("Waiting for daemons (%.1fs elapsed, %.1fs remaining, attempt %d): found=%s missing=%s" %
+                        (elapsed, remaining, retry_count, found_daemons, missing_daemons))
             else:
-                log_warn("Can't read daemon status from FRR: %s" % str(err))
-            time.sleep(0.1)  # sleep 100 ms
-        raise RuntimeError("FRR daemons hasn't been started in %d seconds" % seconds)
+                log_warn("Can't read daemon status from FRR (%.1fs elapsed, %.1fs remaining, attempt %d): %s" %
+                        (elapsed, remaining, retry_count, str(err)))
+
+            time.sleep(1.0)
+
+        raise RuntimeError("FRR daemons hasn't been started in %d seconds" % timeout)
 
     @staticmethod
     def get_config():
