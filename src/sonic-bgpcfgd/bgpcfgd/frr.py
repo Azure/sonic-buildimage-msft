@@ -18,11 +18,10 @@ class FRR(object):
         Wait until FRR daemons are ready for requests
         :param seconds: number of seconds to wait, until raise an error
         """
-        timeout = max(seconds, 120)
-        stop_time = datetime.datetime.now() + datetime.timedelta(seconds=timeout)
+        stop_time = datetime.datetime.now() + datetime.timedelta(seconds=seconds)
         start_time = datetime.datetime.now()
 
-        log_info("Start waiting for FRR daemons (timeout=%ds): %s" % (timeout, str(start_time)))
+        log_info("Start waiting for FRR daemons (timeout=%ds): %s" % (seconds, str(start_time)))
         log_info("Required daemons: %s" % str(self.daemons))
 
         retry_count = 0
@@ -53,7 +52,7 @@ class FRR(object):
 
             time.sleep(1.0)
 
-        raise RuntimeError("FRR daemons hasn't been started in %d seconds" % timeout)
+        raise RuntimeError("FRR daemons hasn't been started in %d seconds" % seconds)
 
     @staticmethod
     def get_config():
