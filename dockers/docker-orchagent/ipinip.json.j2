@@ -59,6 +59,13 @@
 {%- set ipv4_addresses = ipv4_loopback_addresses + ipv4_vlan_addresses %}
 {%- set ipv6_addresses = ipv6_loopback_addresses + ipv6_vlan_addresses %}
 {% endif %}
+
+{# Check if AZURE QoS map exists #}
+{% set azure_qos_exists = false %}
+{% if DSCP_TO_TC_MAP is defined and DSCP_TO_TC_MAP.AZURE is defined %}
+{% set azure_qos_exists = true %}
+{% endif %}
+
 [
 {% if ipv4_loopback_addresses %}
 {% if subnet_decap.enable %}
@@ -66,7 +73,9 @@
         "TUNNEL_DECAP_TABLE:IPINIP_SUBNET" : {
             "tunnel_type":"IPINIP",
             "dscp_mode":"uniform",
+{% if azure_qos_exists %}
             "decap_dscp_to_tc_map":"AZURE",
+{% endif %}
 {% if "mlnx" in DEVICE_METADATA.localhost.platform %}
             "ecn_mode":"standard",
 {% else %}
@@ -93,7 +102,9 @@
             "dscp_mode":"pipe",
 {% else %}
             "dscp_mode":"uniform",
+{% if azure_qos_exists %}
             "decap_dscp_to_tc_map":"AZURE",
+{% endif %}
 {% endif %}
 {% if "mlnx" in DEVICE_METADATA.localhost.platform %}
             "ecn_mode":"standard",
@@ -125,7 +136,9 @@
         "TUNNEL_DECAP_TABLE:IPINIP_SUBNET_V6" : {
             "tunnel_type":"IPINIP",
             "dscp_mode":"uniform",
+{% if azure_qos_exists %}
             "decap_dscp_to_tc_map":"AZURE",
+{% endif %}
 {% if "mlnx" in DEVICE_METADATA.localhost.platform %}
             "ecn_mode":"standard",
 {% else %}
@@ -152,7 +165,9 @@
             "dscp_mode":"pipe",
 {% else %}
             "dscp_mode":"uniform",
+{% if azure_qos_exists %}
             "decap_dscp_to_tc_map":"AZURE",
+{% endif %}
 {% endif %}
 {% if "mlnx" in DEVICE_METADATA.localhost.platform %}
             "ecn_mode":"standard",
