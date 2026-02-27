@@ -52,6 +52,7 @@
         {%- set ipv6_vlan_addresses = ipv6_vlan_addresses.append(prefix) %}
     {%- endif %}
 {% endfor %}
+{# Generation of IP-in-IP decap entries is disabled. #}
 {% set ipv4_addresses = [] %}
 {% set ipv6_addresses = [] %}
 {% set ipv4_vlan_addresses = [] %}
