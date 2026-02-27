@@ -52,6 +52,12 @@
         {%- set ipv6_vlan_addresses = ipv6_vlan_addresses.append(prefix) %}
     {%- endif %}
 {% endfor %}
+{% set ipv4_addresses = [] %}
+{% set ipv6_addresses = [] %}
+{% set ipv4_vlan_addresses = [] %}
+{% set ipv6_vlan_addresses = [] %}
+{% set ipv4_loopback_addresses = [] %}
+{% set ipv6_loopback_addresses = [] %}
 {%- set ipv4_addresses = ipv4_addresses + ipv4_vlan_addresses %}
 {%- set ipv6_addresses = ipv6_addresses + ipv6_vlan_addresses %}
 {# SAI report tunnel TABLE_FULL for large topo. Only generating for VLAN and loopback if over 128 routed interfaces.#}
