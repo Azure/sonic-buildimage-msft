@@ -112,7 +112,7 @@ RUN rm -rf /debs \
     && rm -f get-pip.py \
     && pip install setuptools \
     && pip install supervisor \
-    && pip install ipython==5.4.1 \
+    && pip install ipython \
     && git clone https://github.com/p4lang/scapy-vxlan.git \
     && cd scapy-vxlan \
     && python setup.py install \
