@@ -1,0 +1,56 @@
+From 151d8013e1e1a961001c23c8864670239b0c0773 Mon Sep 17 00:00:00 2001
+From: Louis Scalbert <louis.scalbert@6wind.com>
+Date: Fri, 24 May 2024 17:06:59 +0200
+Subject: [PATCH 3/4] zebra: fix show route vrf all memory consumption
+
+0e2fc3d67f ("vtysh, zebra: Fix malformed json output for multiple vrfs
+in command 'show ip route vrf all json'") has been reverted in the
+previous commit. Although the fix was correct, it was consuming too muca
+memory when displaying large route tables.
+
+A root JSON object was storing all the JSON objects containing the route
+tables, each containing their respective prefixes in JSON objects. This
+resulted in excessive memory allocation for JSON objects, potentially
+leading to an out-of-memory error on the machine.
+
+To Fix the memory consumption issue for the "show ip[v6] route vrf all
+json" command, display the tables one by one and free the memory of each
+JSON object after it has been displayed.
+
+Signed-off-by: Louis Scalbert <louis.scalbert@6wind.com>
+
+diff --git a/zebra/zebra_vty.c b/zebra/zebra_vty.c
+index 020da38450..f80acf2285 100644
+--- a/zebra/zebra_vty.c
++++ b/zebra/zebra_vty.c
+@@ -1746,6 +1746,7 @@ DEFPY (show_route,
+        "Nexthop Group Information\n")
+ {
+ 	afi_t afi = ipv4 ? AFI_IP : AFI_IP6;
++	bool first_vrf_json = true;
+ 	struct vrf *vrf;
+ 	int type = 0;
+ 	struct zebra_vrf *zvrf;
+@@ -1777,7 +1778,9 @@ DEFPY (show_route,
+ 			if ((zvrf = vrf->info) == NULL
+ 			    || (zvrf->table[afi][SAFI_UNICAST] == NULL))
+ 				continue;
+-
++			if (json)
++				vty_json_key(vty, zvrf_name(zvrf),
++					     &first_vrf_json);
+ 			if (table_all)
+ 				do_show_ip_route_all(vty, zvrf, afi, !!fib,
+ 						     !!json, tag,
+@@ -1793,6 +1796,8 @@ DEFPY (show_route,
+ 						 ospf_instance_id, table, !!ng,
+ 						 &ctx);
+ 		}
++		if (json)
++			vty_json_close(vty, first_vrf_json);
+ 	} else {
+ 		vrf_id_t vrf_id = VRF_DEFAULT;
+ 
+-- 
+2.50.1
+

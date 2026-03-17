@@ -1,0 +1,66 @@
+From e65ccf2189a602f2f70a5ad40f93b6dded1f9ec9 Mon Sep 17 00:00:00 2001
+From: Krishnasamy R <krishnasamyr@nvidia.com>
+Date: Thu, 10 Apr 2025 07:02:06 -0700
+Subject: [PATCH] bgpd: Delay processing MetaQ in some events
+
+Original commit of this change is in PR #18450.
+Once BGP MetaQ changes are pushed to 'upstream/stable_10_0'
+branch, the original commit needs to be patched after
+reverting this commit.
+
+If the number of peers that are being handled on
+the peer connection fifo is greater than 10, that
+means we have some network event going on.  Let's
+allow the packet processing to continue instead
+of running the metaQ.  This has advantages because
+everything else in BGP is only run after the metaQ
+is run.  This includes best path processing,
+installation of the route into zebra as well as
+telling our peers about this change.  Why does
+this matter?  It matters because if we are receiving
+the same route multiple times we limit best path processing
+to much fewer times and consequently we also limit
+the number of times we send the route update out and
+we install the route much fewer times as well.
+
+Prior to this patch, with 512 peers and 5k routes.
+CPU time for bgpd was 3:10, zebra was 3:28.  After
+the patch CPU time for bgpd was 0:55 and zebra was
+0:25.
+
+Signed-off-by: Krishnasamy R <krishnasamyr@nvidia.com>
+---
+ bgpd/bgp_route.c | 17 +++++++++++++++++
+ 1 file changed, 17 insertions(+)
+
+diff --git a/bgpd/bgp_route.c b/bgpd/bgp_route.c
+index c8e864713..0a3bf0fca 100644
+--- a/bgpd/bgp_route.c
++++ b/bgpd/bgp_route.c
+@@ -3880,6 +3880,23 @@ static wq_item_status bgp_process_wq(struct work_queue *wq, void *data)
+ 	struct bgp *bgp = pqnode->bgp;
+ 	struct bgp_table *table;
+ 	struct bgp_dest *dest;
++	uint32_t peers_on_fifo;
++	static uint32_t total_runs = 0;
++
++	total_runs++;
++
++	frr_with_mutex (&bm->peer_connection_mtx)
++		peers_on_fifo = peer_connection_fifo_count(&bm->connection_fifo);
++
++	/*
++	 * If the number of peers on the fifo is greater than 10
++	 * let's yield this run of the MetaQ  to allow the packet processing to make
++	 * progress against the incoming packets.  But we should also
++	 * attempt to allow this to run occassionally.  Let's run
++	 * something every 10 attempts to process the work queue.
++	 */
++	if (peers_on_fifo > 10 && total_runs % 10 != 0)
++		return WQ_QUEUE_BLOCKED;
+ 
+ 	/* eoiu marker */
+ 	if (CHECK_FLAG(pqnode->flags, BGP_PROCESS_QUEUE_EOIU_MARKER)) {
+-- 
+2.39.5
+

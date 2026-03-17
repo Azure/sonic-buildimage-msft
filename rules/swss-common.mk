@@ -1,0 +1,42 @@
+# libswsscommon package
+
+LIBSWSSCOMMON_VERSION = 1.0.0
+LIBSWSSCOMMON_NAME = libswsscommon
+
+LIBSWSSCOMMON = $(LIBSWSSCOMMON_NAME)_$(LIBSWSSCOMMON_VERSION)_$(CONFIGURED_ARCH).deb
+$(LIBSWSSCOMMON)_SRC_PATH = $(SRC_PATH)/sonic-swss-common
+$(LIBSWSSCOMMON)_VERSION = $(LIBSWSSCOMMON_VERSION)
+$(LIBSWSSCOMMON)_NAME = $(LIBSWSSCOMMON_NAME)
+$(LIBSWSSCOMMON)_DEPENDS += $(LIBNL3_DEV) $(LIBNL_GENL3_DEV) \
+                            $(LIBNL_ROUTE3_DEV) $(LIBNL_NF3_DEV) \
+                            $(LIBNL_CLI_DEV) $(LIBYANG_DEV) $(LIBYANG) 
+$(LIBSWSSCOMMON)_RDEPENDS += $(LIBNL3) $(LIBNL_GENL3) \
+                             $(LIBNL_ROUTE3) $(LIBNL_NF3) $(LIBNL_CLI) $(LIBYANG) 
+SONIC_DPKG_DEBS += $(LIBSWSSCOMMON)
+
+LIBSWSSCOMMON_DEV = $(LIBSWSSCOMMON_NAME)-dev_$(LIBSWSSCOMMON_VERSION)_$(CONFIGURED_ARCH).deb
+$(eval $(call add_derived_package,$(LIBSWSSCOMMON),$(LIBSWSSCOMMON_DEV)))
+
+ifeq ($(ENABLE_PY2_MODULES), y)
+    PYTHON_SWSSCOMMON = python-swsscommon_$(LIBSWSSCOMMON_VERSION)_$(CONFIGURED_ARCH).deb
+    $(eval $(call add_derived_package,$(LIBSWSSCOMMON),$(PYTHON_SWSSCOMMON)))
+else
+    $(LIBSWSSCOMMON)_DEB_BUILD_PROFILES += nopython2
+endif
+
+PYTHON3_SWSSCOMMON = python3-swsscommon_$(LIBSWSSCOMMON_VERSION)_$(CONFIGURED_ARCH).deb
+$(eval $(call add_derived_package,$(LIBSWSSCOMMON),$(PYTHON3_SWSSCOMMON)))
+
+LIBSWSSCOMMON_DBG = $(LIBSWSSCOMMON_NAME)-dbgsym_$(LIBSWSSCOMMON_VERSION)_$(CONFIGURED_ARCH).deb
+$(LIBSWSSCOMMON_DBG)_DEPENDS += $(LIBSWSSCOMMON)
+$(LIBSWSSCOMMON_DBG)_RDEPENDS += $(LIBSWSSCOMMON)
+$(eval $(call add_derived_package,$(LIBSWSSCOMMON),$(LIBSWSSCOMMON_DBG)))
+
+SONIC_DB_CLI = sonic-db-cli_$(LIBSWSSCOMMON_VERSION)_$(CONFIGURED_ARCH).deb
+$(eval $(call add_derived_package,$(LIBSWSSCOMMON),$(SONIC_DB_CLI)))
+
+# The .c, .cpp, .h & .hpp files under src/{$DBG_SRC_ARCHIVE list}
+# are archived into debug one image to facilitate debugging.
+#
+DBG_SRC_ARCHIVE += sonic-swss-common
+

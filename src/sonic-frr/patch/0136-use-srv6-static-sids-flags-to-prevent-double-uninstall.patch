@@ -1,0 +1,82 @@
+diff --git a/staticd/static_srv6.h b/staticd/static_srv6.h
+index 9e9058b53..fa6e6d2d3 100644
+--- a/staticd/static_srv6.h
++++ b/staticd/static_srv6.h
+@@ -52,7 +52,7 @@ struct static_srv6_sid {
+ /* this SRv6 SID is valid and can be installed in the zebra RIB */
+ #define STATIC_FLAG_SRV6_SID_VALID (1 << 0)
+ /* this SRv6 SID has been installed in the zebra RIB */
+-#define STATIC_FLAG_SRV6_SID_SENT_TO_ZEBRA (2 << 0)
++#define STATIC_FLAG_SRV6_SID_SENT_TO_ZEBRA (1 << 1)
+ 
+ 	char locator_name[SRV6_LOCNAME_SIZE];
+ 	struct static_srv6_locator *locator;
+diff --git a/staticd/static_zebra.c b/staticd/static_zebra.c
+index 594f1f783..74668282b 100644
+--- a/staticd/static_zebra.c
++++ b/staticd/static_zebra.c
+@@ -621,6 +621,9 @@ void static_zebra_srv6_sid_install(struct static_srv6_sid *sid)
+ 	if (!sid)
+ 		return;
+ 
++	if (CHECK_FLAG(sid->flags, STATIC_FLAG_SRV6_SID_SENT_TO_ZEBRA))
++		return;
++
+ 	zlog_info("setting SRv6 SID %pFX",
+ 		 &sid->addr);
+ 
+@@ -737,6 +740,8 @@ void static_zebra_srv6_sid_install(struct static_srv6_sid *sid)
+ 	/* Send the SID to zebra */
+ 	static_zebra_send_localsid(ZEBRA_ROUTE_ADD, &sid->addr.prefix, sid->addr.prefixlen,
+ 				 ifp->ifindex, action, &ctx);
++
++	SET_FLAG(sid->flags, STATIC_FLAG_SRV6_SID_SENT_TO_ZEBRA);
+ }
+ 
+ void static_zebra_srv6_sid_uninstall(struct static_srv6_sid *sid)
+@@ -752,6 +757,9 @@ void static_zebra_srv6_sid_uninstall(struct static_srv6_sid *sid)
+ 	if (!sid)
+ 		return;
+ 
++	if (!CHECK_FLAG(sid->flags, STATIC_FLAG_SRV6_SID_SENT_TO_ZEBRA))
++		return;
++
+ 	zlog_info("delete SID %pFX", &sid->addr);
+ 
+ 	if (!sid->locator) {
+@@ -855,6 +863,8 @@ void static_zebra_srv6_sid_uninstall(struct static_srv6_sid *sid)
+ 
+ 	static_zebra_send_localsid(ZEBRA_ROUTE_DELETE, &sid->addr.prefix, sid->addr.prefixlen,
+ 				 ifp->ifindex, action, &ctx);
++
++	UNSET_FLAG(sid->flags, STATIC_FLAG_SRV6_SID_SENT_TO_ZEBRA);
+ }
+ 
+ extern void static_zebra_request_srv6_sid(struct static_srv6_sid *sid)
+@@ -931,7 +941,7 @@ extern void static_zebra_release_srv6_sid(struct static_srv6_sid *sid)
+ 	struct vrf *vrf;
+ 	int ret = 0;
+ 
+-	if (!sid)
++	if (!sid || !CHECK_FLAG(sid->flags, STATIC_FLAG_SRV6_SID_VALID))
+ 		return;
+ 
+ 	/* convert `static_srv6_sid_behavior_t` to `seg6local_action_t` */
+@@ -990,6 +1000,8 @@ extern void static_zebra_release_srv6_sid(struct static_srv6_sid *sid)
+ 		flog_err(EC_LIB_ZAPI_SOCKET,
+ 			 "zclient_send_get_srv6_sid() delete failed: %s",
+ 			 safe_strerror(errno));
++
++	UNSET_FLAG(sid->flags, STATIC_FLAG_SRV6_SID_VALID);
+ }
+ 
+ /**
+@@ -1194,6 +1206,8 @@ static int static_zebra_srv6_sid_notify(ZAPI_CALLBACK_ARGS)
+ 			return 0;
+ 		}
+ 
++		SET_FLAG(sid->flags, STATIC_FLAG_SRV6_SID_VALID);
++
+ 		/*
+ 			* Install the new SRv6 End SID in the forwarding plane through
+ 			* Zebra

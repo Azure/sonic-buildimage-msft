@@ -1,0 +1,29 @@
+From 1005576d20c296355492c3253952c2d1b303048f Mon Sep 17 00:00:00 2001
+From: Donald Sharp <sharpd@nvidia.com>
+Date: Wed, 7 May 2025 11:34:16 -0400
+Subject: [PATCH] zebra: Add nexthop group id to route dump
+
+The `show ip zebra route dump" command is not
+displaying the nexthop group id number.  Add that
+in.
+
+Signed-off-by: Donald Sharp <sharpd@nvidia.com>
+---
+ zebra/zebra_vty.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/zebra/zebra_vty.c b/zebra/zebra_vty.c
+index 79f479437..c8a8460a4 100644
+--- a/zebra/zebra_vty.c
++++ b/zebra/zebra_vty.c
+@@ -2237,6 +2237,7 @@ static void show_ip_route_dump_vty(struct vty *vty, struct route_table *table)
+ 					 tm.tm_hour);
+ 
+ 			vty_out(vty, "   status: %u\n", re->status);
++			vty_out(vty, "   nexthop_group_id: %u\n", re->nhe->id);
+ 			vty_out(vty, "   nexthop_num: %u\n",
+ 				nexthop_group_nexthop_num(&(re->nhe->nhg)));
+ 			vty_out(vty, "   nexthop_active_num: %u\n",
+-- 
+2.39.5
+

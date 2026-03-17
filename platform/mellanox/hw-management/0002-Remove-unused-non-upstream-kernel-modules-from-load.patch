@@ -1,0 +1,26 @@
+From 2b5ad7fc6c39b9fa0f3f72341352fb121432ebb1 Mon Sep 17 00:00:00 2001
+From: Vivek Reddy <vkarri@nvidia.com>
+Date: Mon, 5 May 2025 21:25:57 +0000
+Subject: [PATCH] Remove unused non-upstream kernel modules from load
+
+Signed-off-by: Vivek Reddy <vkarri@nvidia.com>
+---
+ usr/etc/modules-load.d/05-hw-management-modules.conf | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/usr/etc/modules-load.d/05-hw-management-modules.conf b/usr/etc/modules-load.d/05-hw-management-modules.conf
+index c5a01a44..85e6c967 100644
+--- a/usr/etc/modules-load.d/05-hw-management-modules.conf
++++ b/usr/etc/modules-load.d/05-hw-management-modules.conf
+@@ -13,8 +13,6 @@ at24
+ xdpe12284
+ mp2975
+ mp2888
+-emc2305
+-ti-ads1015
+ powr1220
+ pmbus
+ i2c-mux-mlxcpld
+-- 
+2.43.2
+

@@ -1,0 +1,278 @@
+{
+    "INTERFACE_IPPREFIX_PORT_MUST_CONDITION_FALSE": {
+        "sonic-interface:sonic-interface": {
+            "sonic-interface:INTERFACE": {
+                "INTERFACE_IPPREFIX_LIST": [
+                    {
+                        "family": "IPv4",
+                        "ip-prefix": "10.0.0.1/30",
+                        "name": "Ethernet8",
+                        "scope": "global"
+                    }
+                ],
+                "INTERFACE_LIST": [
+                    {
+                        "name": "Ethernet9"
+                    }
+                ]
+            }
+        },
+        "sonic-port:sonic-port": {
+            "sonic-port:PORT": {
+                "PORT_LIST": [
+                    {
+                        "admin_status": "up",
+                        "alias": "eth8",
+                        "description": "Ethernet8",
+                        "lanes": "65",
+                        "mtu": 9000,
+                        "name": "Ethernet8",
+                        "speed": 25000,
+                        "mode":"trunk"
+                    },
+                    {
+                        "admin_status": "up",
+                        "alias": "eth9",
+                        "description": "Ethernet9",
+                        "lanes": "71",
+                        "mtu": 9000,
+                        "name": "Ethernet9",
+                        "speed": 25000,
+                        "mode":"trunk"
+                    }
+                ]
+            }
+        }
+    },
+    "INTERFACE_IPPREFIX_PORT_MUST_CONDITION_TRUE": {
+        "sonic-interface:sonic-interface": {
+            "sonic-interface:INTERFACE": {
+                "INTERFACE_IPPREFIX_LIST": [
+                    {
+                        "family": "IPv4",
+                        "ip-prefix": "10.0.0.1/30",
+                        "name": "Ethernet8",
+                        "scope": "global"
+                    }
+                ],
+                "INTERFACE_LIST": [
+                    {
+                        "name": "Ethernet8"
+                    }
+                ]
+            }
+        },
+        "sonic-port:sonic-port": {
+            "sonic-port:PORT": {
+                "PORT_LIST": [
+                    {
+                        "admin_status": "up",
+                        "alias": "eth8",
+                        "description": "Ethernet8",
+                        "fec": "rs",
+                        "lanes": "65",
+                        "mtu": 9000,
+                        "name": "Ethernet8",
+                        "speed": 25000,
+                        "mode":"trunk"
+                    }
+                ]
+            }
+        }
+    },
+    "INTERFACE_IP_PREFIX_EMPTY_STRING": {
+        "sonic-interface:sonic-interface": {
+            "sonic-interface:INTERFACE": {
+                "INTERFACE_IPPREFIX_LIST": [
+                    {
+                        "family": "IPv4",
+                        "ip-prefix": "",
+                        "name": "Ethernet8",
+                        "scope": "global"
+                    }
+                ],
+                "INTERFACE_LIST": [
+                    {
+                        "name": "Ethernet8"
+                    }
+                ]
+            }
+        },
+        "sonic-port:sonic-port": {
+            "sonic-port:PORT": {
+                "PORT_LIST": [
+                    {
+                        "admin_status": "up",
+                        "alias": "eth8",
+                        "description": "Ethernet8",
+                        "mtu": 9000,
+                        "name": "Ethernet8",
+                        "speed": 25000,
+                        "mode":"trunk"
+                    }
+                ]
+            }
+        }
+    },
+    "INTERFACE_WRONG_NAT_ZONE_RANGE": {
+        "sonic-interface:sonic-interface": {
+            "sonic-interface:INTERFACE": {
+                "INTERFACE_IPPREFIX_LIST": [
+                    {
+                        "family": "IPv4",
+                        "ip-prefix": "10.0.0.1/30",
+                        "name": "Ethernet8",
+                        "scope": "global"
+                    }
+                ],
+                "INTERFACE_LIST": [
+                    {
+                        "name": "Ethernet8",
+                        "nat_zone": "4"
+                    }
+                ]
+            }
+        },
+        "sonic-port:sonic-port": {
+            "sonic-port:PORT": {
+                "PORT_LIST": [
+                    {
+                        "admin_status": "up",
+                        "alias": "eth8",
+                        "description": "Ethernet8",
+                        "fec": "rs",
+                        "lanes": "65",
+                        "mtu": 9000,
+                        "name": "Ethernet8",
+                        "speed": 25000,
+                        "mode":"trunk"
+                    }
+                ]
+            }
+        }
+    },
+    "INTERFACE_VALID_NAT_ZONE_RANGE": {
+        "sonic-interface:sonic-interface": {
+            "sonic-interface:INTERFACE": {
+                "INTERFACE_IPPREFIX_LIST": [
+                    {
+                        "family": "IPv4",
+                        "ip-prefix": "10.0.0.1/30",
+                        "name": "Ethernet8",
+                        "scope": "global"
+                    }
+                ],
+                "INTERFACE_LIST": [
+                    {
+                        "name": "Ethernet8",
+                        "nat_zone": "2"
+                    }
+                ]
+            }
+        },
+        "sonic-port:sonic-port": {
+            "sonic-port:PORT": {
+                "PORT_LIST": [
+                    {
+                        "admin_status": "up",
+                        "alias": "eth8",
+                        "description": "Ethernet8",
+                        "fec": "rs",
+                        "lanes": "65",
+                        "mtu": 9000,
+                        "name": "Ethernet8",
+                        "speed": 25000,
+                        "mode":"trunk"
+                    }
+                ]
+            }
+        }
+    },
+    "INTERFACE_INVALID_LOOPBACK_ACTION": {
+        "sonic-interface:sonic-interface": {
+            "sonic-interface:INTERFACE": {
+                "INTERFACE_LIST": [
+                    {
+                        "name": "Ethernet8",
+                        "loopback_action": "trap"
+                    }
+                ]
+            }
+        },
+        "sonic-port:sonic-port": {
+            "sonic-port:PORT": {
+                "PORT_LIST": [
+                    {
+                        "admin_status": "up",
+                        "alias": "eth8",
+                        "description": "Ethernet8",
+                        "fec": "rs",
+                        "lanes": "65",
+                        "mtu": 9000,
+                        "name": "Ethernet8",
+                        "speed": 25000,
+                        "mode":"trunk"
+                    }
+                ]
+            }
+        }
+    },
+    "INTERFACE_ENABLE_IPV6_LINK_LOCAL": {
+        "sonic-interface:sonic-interface": {
+            "sonic-interface:INTERFACE": {
+                "INTERFACE_LIST": [
+                    {
+                        "name": "Ethernet8",
+                        "ipv6_use_link_local_only": "enable"
+                    }
+                ]
+            }
+        },
+        "sonic-port:sonic-port": {
+            "sonic-port:PORT": {
+                "PORT_LIST": [
+                    {
+                        "admin_status": "up",
+                        "alias": "eth8",
+                        "description": "Ethernet8",
+                        "fec": "rs",
+                        "lanes": "65",
+                        "mtu": 9000,
+                        "name": "Ethernet8",
+                        "speed": 25000,
+                        "mode":"trunk"
+                    }
+                ]
+            }
+        }
+    },
+    "INTERFACE_INVALID_ENABLE_IPV6_LINK_LOCAL": {
+        "sonic-interface:sonic-interface": {
+            "sonic-interface:INTERFACE": {
+                "INTERFACE_LIST": [
+                    {
+                        "name": "Ethernet8",
+                        "ipv6_use_link_local_only": "true"
+                    }
+                ]
+            }
+        },
+        "sonic-port:sonic-port": {
+            "sonic-port:PORT": {
+                "PORT_LIST": [
+                    {
+                        "admin_status": "up",
+                        "alias": "eth8",
+                        "description": "Ethernet8",
+                        "fec": "rs",
+                        "lanes": "65",
+                        "mtu": 9000,
+                        "name": "Ethernet8",
+                        "speed": 25000,
+                        "mode":"trunk"
+                    }
+                ]
+            }
+        }
+    }
+}

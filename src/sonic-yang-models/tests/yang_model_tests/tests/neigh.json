@@ -1,0 +1,26 @@
+{
+    "VALID_NEIGH": {
+        "desc": "Load valid neighbors"
+    },
+
+    "NEIGH_MISSING_IP": {
+        "desc": "Load NEIGH missing IP address",
+        "eStr": ["Invalid JSON data"]
+    },
+
+    "NEIGH_INVALID_VLAN": {
+        "desc": "Load NEIGH missing VLAN",
+        "eStrKey": "InvalidValue",
+        "eStr": ["port"]
+    },
+
+    "VALID_NEIGH_PORTCHANNEL": {
+        "desc": "Load valid PORTCHANNEL"
+    },
+
+    "NEIGH_INVALID_PORTCHANNEL": {
+        "desc": "Load NEIGH missing PORTCHANNEL",
+        "eStrKey": "InvalidValue",
+        "eStr": ["port"]
+    }
+}
