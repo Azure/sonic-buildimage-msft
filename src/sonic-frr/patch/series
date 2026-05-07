@@ -125,3 +125,4 @@
 0144-mgmtd-remove-bogus-hedge-code-which-corrupted-active.patch
 0145-mgmtd-normalize-argument-order-to-copy-dst-src.patch
 0146-zebra-fix-speed-timer-race-with-RTM_NEWLINK.patch
+0147-zebra-defer-rib-sweep-until-metaqueue-drained.patch
