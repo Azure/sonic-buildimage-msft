@@ -1,4 +1,5 @@
 import json
+import re
 from swsscommon import swsscommon
 
 import jinja2
@@ -10,6 +11,15 @@ from .manager import Manager
 from .template import TemplateFabric
 from .utils import run_command
 from .managers_device_global import DeviceGlobalCfgMgr
+
+INTERFACE_PATTERN = re.compile(r'^(Ethernet|PortChannel|Vlan|Po)\d+(\.\d+)?$')
+
+
+def is_interface_neighbor(neighbor):
+    """Return True if neighbor key is an interface name, not an IP address."""
+    if not neighbor:
+        return False
+    return bool(INTERFACE_PATTERN.match(neighbor))
 
 
 class BGPPeerGroupMgr(object):
@@ -192,7 +202,10 @@ class BGPPeerMgrBase(Manager):
                 log_warn("Loopback4096 ipv4 address is not presented yet and bgp_router_id not configured")
                 return False
 
-        if "local_addr" not in data:
+        if is_interface_neighbor(nbr):
+            # Interface-based (unnumbered) neighbor: skip local_addr validation
+            pass
+        elif "local_addr" not in data:
             log_warn("Peer %s. Missing attribute 'local_addr'" % nbr)
         else:
             data["local_addr"] = str(netaddr.IPNetwork(str(data["local_addr"])).ip)

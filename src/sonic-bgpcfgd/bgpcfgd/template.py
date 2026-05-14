@@ -14,6 +14,7 @@ class TemplateFabric(object):
         j2_env = jinja2.Environment(loader=j2_loader, trim_blocks=False)
         j2_env.filters['ipv4'] = self.is_ipv4
         j2_env.filters['ipv6'] = self.is_ipv6
+        j2_env.filters['is_interface'] = self.is_interface
         j2_env.filters['pfx_filter'] = self.pfx_filter
         for attr in ['ip', 'network', 'prefixlen', 'netmask']:
             j2_env.filters[attr] = partial(self.prefix_attr, attr)
@@ -62,6 +63,14 @@ class TemplateFabric(object):
             except (netaddr.NotRegisteredError, netaddr.AddrFormatError, netaddr.AddrConversionError):
                 return False
         return addr.version == 6
+
+    @staticmethod
+    def is_interface(value):
+        """ Return True if the value is an interface name (Ethernet, PortChannel, Vlan) """
+        if not value:
+            return False
+        import re
+        return bool(re.match(r'^(Ethernet|PortChannel|Vlan|Po)\d+(\.\d+)?$', str(value)))
 
     @staticmethod
     def prefix_attr(attr, value):
