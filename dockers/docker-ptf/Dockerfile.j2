@@ -214,7 +214,7 @@ RUN pip3 install setuptools \
     && pip3 install retrying \
     && pip3 install jinja2 \
     && pip3 install scapy==2.5.0 \
-    && pip3 install thrift
+    && pip3 install thrift==0.22.0
 
 {% if docker_ptf_whls.strip() -%}
 # Copy locally-built Python wheel dependencies
