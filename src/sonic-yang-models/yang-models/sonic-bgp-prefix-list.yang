@@ -12,7 +12,8 @@ module sonic-bgp-prefix-list {
 
     import sonic-extension {
         prefix ext;
-    
+    }
+
     import sonic-routing-policy-sets {
         prefix rpolsets;
     }
