@@ -92,7 +92,9 @@ RUN apt-get update          \
         automake            \
         iproute2            \
         iptables            \
+{% if PTF_ENV_PY_VER != "mixed" %}
         wireshark-common    \
+{% endif %}
         freeradius          \
         quilt
 
@@ -100,25 +102,39 @@ RUN apt-get update          \
 # to ensure they use a patched Go stdlib (GO-2026-4337: crypto/tls)
 {% if CONFIGURED_ARCH == "armhf" %}
 RUN GO_ARCH=armv6l \
+    && GO_SHA256=39f168f158e693887d3ad006168af1b1a3007b19c5993cae4d9d57f82f52aaf8 \
 {% elif CONFIGURED_ARCH == "arm64" %}
 RUN GO_ARCH=arm64 \
+    && GO_SHA256=654da1f9b50a5d1c2a85ccf8ed405aa89c06e94d18384628bf186f7712677b08 \
 {% else %}
 RUN GO_ARCH=amd64 \
+    && GO_SHA256=42d4f7a32316aa66591eca7e89867256057a4264451aca10570a715b3637ba70 \
 {% endif %}
-    && GO_VERSION=1.25.8 \
+    && GO_VERSION=1.25.10 \
     && curl -L "https://go.dev/dl/go${GO_VERSION}.linux-${GO_ARCH}.tar.gz" -o /tmp/go.tar.gz \
+    && echo "${GO_SHA256}  /tmp/go.tar.gz" | sha256sum -c - \
     && tar -C /usr/local -xzf /tmp/go.tar.gz \
     && rm /tmp/go.tar.gz
 
 ENV PATH="/usr/local/go/bin:$HOME/go/bin:$PATH"
 
-# Build grpcurl from source with patched Go (GO-2026-4337)
-RUN go install github.com/fullstorydev/grpcurl/cmd/grpcurl@v1.9.3 \
-    && mv "$(go env GOPATH)/bin/grpcurl" /usr/local/bin/grpcurl \
-    && chmod +x /usr/local/bin/grpcurl
+# Build grpcurl from source with patched Go and golang.org/x/* deps
+# upgraded to latest to address current and future golang.org/x/* CVEs.
+RUN GRPCURL_VERSION=v1.9.3 \
+    && git clone --depth 1 --branch "${GRPCURL_VERSION}" https://github.com/fullstorydev/grpcurl.git /tmp/grpcurl \
+    && cd /tmp/grpcurl \
+    && go get google.golang.org/grpc@v1.79.3 \
+    && go get github.com/go-jose/go-jose/v4@latest \
+    && go get golang.org/x/crypto@latest golang.org/x/net@latest golang.org/x/text@latest golang.org/x/sys@latest golang.org/x/oauth2@latest \
+    && go mod tidy \
+    && go build -o /usr/local/bin/grpcurl ./cmd/grpcurl \
+    && chmod +x /usr/local/bin/grpcurl \
+    && rm -rf /tmp/grpcurl
 # Security fixes: upgrade all vulnerable system packages (S360 scan remediation)
 RUN apt-get update && apt-get upgrade -y \
     && rm -rf /var/lib/apt/lists/*
+
+
 {% if PTF_ENV_PY_VER == "py3" %}
 RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1 \
     && update-alternatives --install /usr/bin/pip pip /usr/bin/pip3 1 \
@@ -145,10 +161,6 @@ RUN rm -rf /debs \
     && python setup.py install \
     && cd .. \
     && rm -fr scapy-vxlan \
-{% else %}
-    && wget --https-only https://bootstrap.pypa.io/pip/get-pip.py \
-    && python3 get-pip.py \
-    && rm -f get-pip.py \
 {% endif %}
     && git clone https://github.com/sflow/sflowtool \
     && cd sflowtool \
@@ -186,7 +198,6 @@ RUN rm -rf /debs \
     && pip install pysubnettree \
     && pip install paramiko \
     && pip install flask   \
-    && pip install tornado \
     && pip install exabgp==3.4.17\
     && pip install pyaml   \
     && pip install pybrctl pyro4 rpyc yabgp \
@@ -196,7 +207,7 @@ RUN rm -rf /debs \
 {% endif %}
     && mkdir -p /opt       \
     && cd /opt             \
-    && wget https://raw.githubusercontent.com/p4lang/ptf/master/ptf_nn/ptf_nn_agent.py
+    && wget https://raw.githubusercontent.com/p4lang/ptf/23ebe7237f3c284032bda02fbd1f4a98f1bc12f4/ptf_nn/ptf_nn_agent.py
 
 {% if PTF_ENV_PY_VER == "py3" %}
 RUN curl -L -o tacacs.tar.gz https://shrubbery.net/pub/tac_plus/tacacs-F4.0.4.31.tar.gz\
@@ -214,17 +225,25 @@ COPY ["tacacs_plus", "/etc/init.d"]
 COPY ["tacacs+", "/etc/default"]
 {% endif %}
 
-{% if PTF_ENV_PY_VER == "mixed" %}
-RUN python3 -m venv --system-site-packages env-python3
+# Workaround: Tornado installed outside of the
+# virtualenv as the call to the process API
+# Ansible -> Supervisor -> ExaBGP -> Process API
+# causes the process API to have a restricted
+# environment without access to the virtualenv.
+{% if PTF_ENV_PY_VER == "py3" %}
+    RUN pip3 install "tornado>=6.5.5"
+{% endif %}
+
+
+RUN python3 -m venv env-python3
 # Activating a virtualenv. The virtualenv automatically works for RUN, ENV and CMD.
 ENV VIRTUAL_ENV=/root/env-python3
 ARG BACKUP_OF_PATH="$PATH"
 ENV PATH="$VIRTUAL_ENV/bin:$PATH"
 ENV LANG=C.UTF-8 LC_ALL=C.UTF-8 PYTHONIOENCODING=UTF-8
 
-# Upgrade pip to address CVE vulnerabilities in older pip versions
-RUN pip3 install --upgrade pip
-{% endif %}
+# Upgrade pip and wheel to address CVE vulnerabilities
+RUN pip3 install --upgrade pip "wheel>=0.46.2"
 
 {% if PTF_ENV_PY_VER == "mixed" %}
 RUN python3 -m pip install --upgrade --ignore-installed pip
@@ -234,12 +253,12 @@ RUN python3 -m pip install --upgrade --ignore-installed pip
 # setuptools on Python 3.9. The packages downgrade setuptools 
 # to 40.x causing further installations to fail
 {% if PTF_ENV_PY_VER == "py3" %}
-{% set offending_packages = ["supervisor", "ipython==5.4.1", "exabgp==4.2.25", "grpcio-tools", "pybrctl", "pyrasite", "scapy==2.5.0", "thrift"] %}
+{% set offending_packages = ["supervisor", "ipython", "exabgp==4.2.25", "grpcio-tools", "pybrctl", "pyrasite", "scapy==2.5.0", "thrift"] %}
 {{ install_offending_packages(offending_packages) }}
 {% else %}
 RUN pip3 install setuptools \
         && pip3 install supervisor \
-        && pip3 install ipython==5.4.1 \
+        && pip3 install ipython \
         && pip3 install exabgp==4.2.25 \
         && pip3 install grpcio-tools \
         && pip3 install pybrctl \
@@ -254,8 +273,8 @@ RUN pip3 install setuptools \
 # Werkzeug 3.1.3 has a bug and causes announce routes to fail
 # by returning 413 Request Entity Too Large though request buffers
 # have been increased.
-RUN pip3 install Flask==3.0.3   \
-    && pip3 install Werkzeug==3.1.2 \
+RUN pip3 install Flask   \
+    && pip3 install Werkzeug \
 {% else %}
 RUN pip3 install Flask \
 {% endif %}
@@ -266,14 +285,13 @@ RUN pip3 install Flask \
     && pip3 install ipaddress \
     && pip3 install pysubnettree \
     && pip3 install paramiko \
-    && pip3 install tornado \
+    && pip3 install "tornado>=6.5.5" \
     && pip3 install Flask   \
     && pip3 install exabgp \
     && pip3 install pyaml   \
     && pip3 install pyro4 rpyc \
     && pip3 install unittest-xml-reporting \
     && pip3 install python-libpcap \
-    && pip3 install enum34 \
     && pip3 install grpcio \
     && pip3 install protobuf \
     && pip3 install six==1.16.0 \
@@ -292,14 +310,14 @@ RUN pip3 install protobuf==6.33.5
 {{ install_python_wheels(docker_ptf_whls.split(' ')) }}
 {% endif %}
 
-{% if PTF_ENV_PY_VER == "mixed" %}
 # Deactivating a virtualenv.
 ENV PATH="$BACKUP_OF_PATH"
-{% endif %}
 
 # Ensure setuptools stays in a secure range while retaining pkg_resources
-# required by grpc_tools.protoc.
-RUN pip3 install "setuptools>=70.0.0,<78.0"
+# required by grpc_tools.protoc. setuptools >=78.1.1 restores pkg_resources
+# compatibility removed in 78.0 and fixes CVE-2025-47273.
+# Upgrade lxml to address GHSA-vfmq-68hx-4jfw
+RUN pip3 install "setuptools>=78.1.1" "wheel>=0.46.2" "lxml>=5.3.2"
 
 ## Adjust sshd settings
 RUN mkdir /var/run/sshd \
@@ -334,7 +352,7 @@ RUN cd gnxi \
     && pip install -r requirements.txt \
     && pip3 install protobuf==6.33.5 --no-binary=protobuf
 {% else %}
-    && pip3 install "setuptools>=70.0.0,<78.0" "grpcio==1.74.0" "grpcio-tools==1.74.0" "protobuf==6.33.5" \
+    && pip3 install "setuptools>=78.1.1" "grpcio==1.74.0" "grpcio-tools==1.74.0" "protobuf==6.33.5" \
     && rm -f gnmi_pb2.py gnmi_ext_pb2.py gnmi_pb2_grpc.py \
     && wget -q -O gnmi_ext.proto https://raw.githubusercontent.com/openconfig/gnmi/master/proto/gnmi_ext/gnmi_ext.proto \
     && wget -q -O gnmi.proto https://raw.githubusercontent.com/openconfig/gnmi/master/proto/gnmi/gnmi.proto \
@@ -344,24 +362,12 @@ RUN cd gnxi \
     && rm -f gnmi.proto gnmi_ext.proto \
     && cat requirements.txt | grep -Ev '^(futures|grpcio==|grpcio-tools==|protobuf==)' > /tmp/requirements.txt \
     && pip3 install -r /tmp/requirements.txt \
-    && pip3 install "setuptools>=70.0.0,<78.0" "grpcio==1.74.0" "grpcio-tools==1.74.0" "protobuf==6.33.5"
+    && pip3 install "setuptools>=78.1.1" "grpcio==1.74.0" "grpcio-tools==1.74.0" "protobuf==6.33.5"
 {% endif %}
 
-# Install gnoic tool
-# Without specifying the version there is a failure
-# to determine the latest version automatically.
-#
-# root@a2014cb5bc54:~/gnoic# ./install.sh
-# Warning: Failed to verify the package: https://api.github.com/repos/karimra/gnoic/releases/latest, the version is not specified
-# Could not determine the latest release
-# Failed to install gnoic
-# For support, go to https://github.com/karimra/gnoic/issues
-RUN git clone https://github.com/karimra/gnoic.git \
-    && cd gnoic \
-    && git checkout 27bc5a6 \
-    && go build -o /usr/local/bin/gnoic . \
-    && cd .. \
-    && rm -rf gnoic
+# Deactivating a virtualenv.
+# ENV PATH="$BACKUP_OF_PATH"
+
 
 COPY \
 {% for deb in docker_ptf_debs.split(' ') -%}
@@ -378,19 +384,53 @@ debs/{{ deb }}{{' '}}
 RUN rm -rf /usr/local/go "$(go env GOPATH 2>/dev/null || echo $HOME/go)"
 ENV PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 
-{% if PTF_ENV_PY_VER == "py3" %}
-# Create symlink so that test scripts and ptf_runner invocation path
-# is same across python 2 and python 3 envs. Note that for virtual-env
-# ptf is under /root/env-python3/bin.
-# TODO - cleanup when the supported PTF image is py3only across all branches
-RUN mkdir -p /root/env-python3/bin \
-    && ln -s /usr/local/bin/ptf /usr/bin/ptf \
-    && ln -s /usr/bin/python /root/env-python3/bin/python3 \
-    && ln -s /usr/bin/python /root/env-python3/bin/python \
-    && ln -s /usr/local/bin/ptf /root/env-python3/bin/ptf
-{% endif %}
+# Apply pending Debian security updates.
+# The build system pins package versions via /etc/apt/preferences.d/01-versions-deb.
+# Remove the pin so apt-get upgrade can pull in the latest security patches.
+RUN rm -f /etc/apt/preferences.d/01-versions-deb \
+    && apt-get update \
+    && apt-get upgrade -y \
+    && rm -rf /var/lib/apt/lists/*
+
+# Final system-level security upgrade: ensure every Debian package is at its
+# latest patched version from the security repos.  This must run AFTER all
+# apt-get install / dpkg -i steps so nothing slips through.
+RUN apt-get update \
+    && apt-get upgrade -y \
+    && apt-get dist-upgrade -y \
+    && rm -rf /var/lib/apt/lists/*
+
+# There are some scripts like supervisorctl and others invoked from
+# custom Ansible modules which use exec_command to run these. Since
+# Ansible module's exec_command uses a restricted shell without sourcing
+# the profile or other rc files the PATH does not include the virtualenv.
+# This step keeps links to required binaries from /usr/local/bin to the
+# virtualenv bin directory.
+RUN set -eux; \
+  for f in /root/env-python3/bin/*; do \
+    base="$(basename "$f")"; \
+    case "$base" in \
+      python*|pip*) continue ;; \
+    esac; \
+    ln -sf "$f" "/usr/local/bin/$base"; \
+  done
+
+RUN echo "/root/env-python3/lib/python3.9/site-packages" > /usr/lib/python3/dist-packages/virtualenv.pth
+
+RUN echo "PYTHONPATH=/root/env-python3/lib/python3.9/site-packages" >> /etc/environment
+
+# Final system-level security upgrade: ensure every Debian package is at its
+# latest patched version. This must run AFTER all apt-get install / dpkg -i
+# steps so nothing slips through.
+# The build system pins package versions via /etc/apt/preferences.d/01-versions-deb.
+# Remove the pin so apt-get upgrade can pull in the latest security patches.
+RUN rm -f /etc/apt/preferences.d/01-versions-deb \
+    && apt-get update \
+    && apt-get upgrade -y \
+    && apt-get dist-upgrade -y \
+    && rm -rf /var/lib/apt/lists/*
 
 COPY ["*.ini", "/etc/ptf/"]
 EXPOSE 22 8009
 
-ENTRYPOINT ["/usr/local/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"]
+ENTRYPOINT ["/root/env-python3/bin/supervisord", "-c", "/etc/supervisor/supervisord.conf"]
