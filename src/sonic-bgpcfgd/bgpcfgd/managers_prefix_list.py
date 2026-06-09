@@ -33,19 +33,39 @@ class PrefixListMgr(Manager):
         :param data: data from the PREFIX_LIST table
         :return: rendered configuration
         """
+
+        if data["prefix_list_name"] != "ANCHOR_PREFIX":
+            cmd_parts = ["no"] if not add else []
+            cmd_parts.extend([data["ipv"], "prefix-list", data["prefix_list_name"]])
+            if "seq" in data:
+                cmd_parts.extend(["seq", str(data["seq"])])
+            if "action" not in data or not data["action"]:
+                log_warn("PrefixListMgr:: Mandatory field 'action' is not defined for prefix list '%s'" % prefix_type)
+                return False
+            cmd_parts.extend([data["action"], data["prefix"]])
+            if "ge" in data:
+                cmd_parts.extend(["ge", str(data["ge"])])
+            if "le" in data:
+                cmd_parts.extend(["le", str(data["le"])])
+            cmd = "\n" + " ".join(cmd_parts)
+            self.cfg_mgr.push(cmd)
+            action = "added to" if add else "removed from"
+            log_debug("PrefixListMgr:: Dynamic prefix list %s %s configuration" % (data["prefix"], action))
+            return True
+
         cmd = "\n"
-        metadata = self.directory.get_slot("CONFIG_DB", swsscommon.CFG_DEVICE_METADATA_TABLE_NAME)["localhost"]
+        if not self.directory.path_exist("CONFIG_DB", swsscommon.CFG_DEVICE_METADATA_TABLE_NAME, "localhost"):
+            log_info("PrefixListMgr:: Device metadata is not ready yet")
+            return False
+        metadata = self.directory.get_path("CONFIG_DB", swsscommon.CFG_DEVICE_METADATA_TABLE_NAME, "localhost")
         try:
             bgp_asn = metadata["bgp_asn"]
             localhost_type = metadata["type"]
-            subtype = metadata["subtype"]
+            subtype = metadata.get("subtype", "")
         except KeyError as e:
             log_warn(f"PrefixListMgr:: Missing metadata key: {e}")
             return False
 
-        if data["prefix_list_name"] != "ANCHOR_PREFIX":
-            log_warn("PrefixListMgr:: Prefix list %s is not supported" % data["prefix_list_name"])
-            return False
         if localhost_type not in ["UpperSpineRouter", "SpineRouter"] or (localhost_type == "SpineRouter" and subtype != "UpstreamLC"):
             log_warn("PrefixListMgr:: Prefix list %s is only supported on Upstream SpineRouter" % data["prefix_list_name"])
             return False
@@ -94,7 +114,11 @@ class PrefixListMgr(Manager):
             except (netaddr.NotRegisteredError, netaddr.AddrFormatError, netaddr.AddrConversionError):
                 log_warn("PrefixListMgr:: Prefix '%s' format is wrong for prefix list '%s'" % (prefix_str, prefix_list_name))
                 return True
-            data = {}
+            if prefix_list_name != "ANCHOR_PREFIX":
+                table_data = self.directory.get_slot(self.db_name, self.table_name)
+                data = dict(table_data.get(key, {}))
+            else:
+                data = {}
             data["prefix_list_name"] = prefix_list_name
             data["prefix"] = str(prefix.cidr)
             data["prefixlen"] = prefix.prefixlen
