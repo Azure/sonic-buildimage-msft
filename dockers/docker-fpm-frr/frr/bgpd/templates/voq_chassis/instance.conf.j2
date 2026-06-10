@@ -6,7 +6,6 @@
 !
 {% if neighbor_addr | is_interface %}
   neighbor {{ neighbor_addr }} interface peer-group PEER_UNNUMBERED
-  neighbor {{ neighbor_addr }} remote-as {{ bgp_session['asn'] }}
 {% if 'v6only' not in bgp_session or bgp_session['v6only'] != 'true' %}
   address-family ipv4
     neighbor {{ neighbor_addr }} activate
