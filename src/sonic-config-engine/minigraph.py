@@ -518,9 +518,7 @@ def parse_device(device):
             slice_type = "AZNG_Production"
 
     if d_type is None and str(QName(ns3, "type")) in device.attrib:
-        # Strip namespace prefix (e.g. "a:BackEndLeafRouter" -> "BackEndLeafRouter")
-        raw_type = device.attrib[str(QName(ns3, "type"))]
-        d_type = raw_type.split(':')[-1] if ':' in raw_type else raw_type
+        d_type = device.attrib[str(QName(ns3, "type"))]
 
     return (lo_prefix, lo_prefix_v6, mgmt_prefix, mgmt_prefix_v6, name, hwsku, d_type, deployment_id, cluster, d_subtype, slice_type)
 
