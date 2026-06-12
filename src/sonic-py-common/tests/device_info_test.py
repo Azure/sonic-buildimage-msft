@@ -119,24 +119,24 @@ class TestDeviceInfo(object):
             # Assert the file was read only once
             open_mocked.assert_called_once_with(device_info.SONIC_VERSION_YAML_PATH)
 
-    @mock.patch("sonic_py_common.device_info.get_platform_info")
-    def test_is_chassis(self, mock_platform_info):
-        mock_platform_info.return_value = {"switch_type": "npu"}
+    @mock.patch("sonic_py_common.device_info.get_localhost_info")
+    def test_is_chassis(self, mock_localhost_info):
+        mock_localhost_info.return_value = "npu"
         assert device_info.is_chassis() == False
         assert device_info.is_voq_chassis() == False
         assert device_info.is_packet_chassis() == False
 
-        mock_platform_info.return_value = {"switch_type": "voq"}
+        mock_localhost_info.return_value = "voq"
         assert device_info.is_voq_chassis() == True
         assert device_info.is_packet_chassis() == False
         assert device_info.is_chassis() == True
 
-        mock_platform_info.return_value = {"switch_type": "chassis-packet"}
+        mock_localhost_info.return_value = "chassis-packet"
         assert device_info.is_voq_chassis() == False
         assert device_info.is_packet_chassis() == True
         assert device_info.is_chassis() == True
 
-        mock_platform_info.return_value = {}
+        mock_localhost_info.return_value = None
         assert device_info.is_voq_chassis() == False
         assert device_info.is_packet_chassis() == False
         assert device_info.is_chassis() == False
