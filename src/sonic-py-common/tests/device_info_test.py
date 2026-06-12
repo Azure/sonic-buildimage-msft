@@ -136,6 +136,9 @@ class TestDeviceInfo(object):
         assert device_info.is_packet_chassis() == True
         assert device_info.is_chassis() == True
 
+        mock_localhost_info.return_value = "SpineRouter"
+        assert device_info.is_chassis() == True
+
         mock_localhost_info.return_value = None
         assert device_info.is_voq_chassis() == False
         assert device_info.is_packet_chassis() == False
