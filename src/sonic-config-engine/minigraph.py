@@ -518,7 +518,9 @@ def parse_device(device):
             slice_type = "AZNG_Production"
 
     if d_type is None and str(QName(ns3, "type")) in device.attrib:
-        d_type = device.attrib[str(QName(ns3, "type"))]
+        # Strip namespace prefix (e.g. "a:BackEndLeafRouter" -> "BackEndLeafRouter")
+        raw_type = device.attrib[str(QName(ns3, "type"))]
+        d_type = raw_type.split(':')[-1] if ':' in raw_type else raw_type
 
     return (lo_prefix, lo_prefix_v6, mgmt_prefix, mgmt_prefix_v6, name, hwsku, d_type, deployment_id, cluster, d_subtype, slice_type)
 
@@ -2856,6 +2858,8 @@ def parse_device_desc_xml(filename):
         'hostname': hostname,
         'hwsku': hwsku,
         }}
+    if d_type:
+        results['DEVICE_METADATA']['localhost']['type'] = d_type
 
     results['LOOPBACK_INTERFACE'] = {'lo': {}, ('lo', lo_prefix): {}}
     if lo_prefix_v6:
