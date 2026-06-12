@@ -573,6 +573,8 @@ def is_packet_chassis():
 
 
 def is_chassis():
+    if get_localhost_info('type') == 'SpineRouter':
+        return True
     return is_voq_chassis() or is_packet_chassis()
 
 
