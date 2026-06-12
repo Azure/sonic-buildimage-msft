@@ -562,18 +562,18 @@ def is_multi_npu():
     return (num_npus > 1)
 
 
-def is_voq_chassis():
-    switch_type = get_platform_info().get('switch_type')
-    return True if switch_type and (switch_type == 'voq' or switch_type == 'fabric') else False
+def is_voq_chassis(config_db=None):
+    switch_type = get_localhost_info('switch_type', config_db)
+    return switch_type in ('voq', 'fabric') if switch_type else False
 
 
-def is_packet_chassis():
-    switch_type = get_platform_info().get('switch_type')
-    return True if switch_type and switch_type == 'chassis-packet' else False
+def is_packet_chassis(config_db=None):
+    switch_type = get_localhost_info('switch_type', config_db)
+    return switch_type == 'chassis-packet' if switch_type else False
 
 
-def is_chassis():
-    return is_voq_chassis() or is_packet_chassis()
+def is_chassis(config_db=None):
+    return is_voq_chassis(config_db) or is_packet_chassis(config_db)
 
 
 def is_supervisor():
