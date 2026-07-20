@@ -2105,3 +2105,4 @@ sai_instru_stat_accum_enable=1
 sai_dnx_ecmp_udp_weight_support=0
 appl_param_active_links_thr_low=1
 appl_param_active_links_thr_high=112
+sai_fec_stats_cumulative=1
