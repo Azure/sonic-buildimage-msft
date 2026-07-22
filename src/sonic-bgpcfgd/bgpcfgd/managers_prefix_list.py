@@ -40,7 +40,7 @@ class PrefixListMgr(Manager):
             if "seq" in data:
                 cmd_parts.extend(["seq", str(data["seq"])])
             if "action" not in data or not data["action"]:
-                log_warn("PrefixListMgr:: Mandatory field 'action' is not defined for prefix list '%s'" % prefix_type)
+                log_warn("PrefixListMgr:: Mandatory field 'action' is not defined for prefix list '%s'" % data["prefix_list_name"])
                 return False
             cmd_parts.extend([data["action"], data["prefix"]])
             if "ge" in data:
