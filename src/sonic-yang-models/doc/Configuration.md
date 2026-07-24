@@ -534,6 +534,7 @@ form, `vrf_name` accepts a VRF name (e.g. `default`, `Vrf1`) or a VNet name
         "Vnet1|10.0.0.0": {
                 "asn": 65100,
                 "name": "overlay-peer",
+                "local_addr": "10.1.0.1",
                 "admin_status": "up"
         }
 
