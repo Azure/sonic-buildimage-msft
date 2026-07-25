@@ -115,3 +115,6 @@
 [submodule "src/dhcpmon"]
 	path = src/dhcpmon
 	url = https://github.com/sonic-net/sonic-dhcpmon.git
+[submodule "src/sonic-bmp"]
+	path = src/sonic-bmp
+	url = https://github.com/sonic-net/sonic-bmp.git
