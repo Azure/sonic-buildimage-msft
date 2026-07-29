@@ -211,7 +211,7 @@ class Test_SonicYang(object):
         for node in data['schema_dependencies']:
             xpath = str(node['xpath'])
             list = node['schema_dependencies']
-            depend = yang_s._find_schema_dependencies(xpath)
+            depend = yang_s.find_schema_dependencies(xpath)
             assert set(depend) == set(list)
 
     #test merge data tree
@@ -260,6 +260,56 @@ class Test_SonicYang(object):
             expected_type = yang_s._str_to_type(expected)
             data_type = yang_s._get_leafref_type_schema(xpath)
             assert expected_type == data_type
+
+    def test_configdb_path_to_xpath(self, yang_s, data):
+        yang_s.loadYangModel()
+        for node in data['configdb_path_to_xpath']:
+            configdb_path = str(node['configdb_path'])
+            schema_xpath = bool(node['schema_xpath'])
+            expected = node['xpath']
+            received = yang_s.configdb_path_to_xpath(configdb_path, schema_xpath=schema_xpath)
+            assert received == expected
+
+    def test_xpath_to_configdb_path(self, yang_s, data):
+        yang_s.loadYangModel()
+        for node in data['xpath_to_configdb_path']:
+            xpath = str(node['xpath'])
+            expected = node['configdb_path']
+            received = yang_s.xpath_to_configdb_path(xpath)
+            assert received == expected
+
+    def test_configdb_path_split(self, yang_s, data):
+        def check(path, tokens):
+            expected=tokens
+            actual=yang_s.configdb_path_split(path)
+            assert expected == actual
+
+        check("", [])
+        check("/", [])
+        check("/token", ["token"])
+        check("/more/than/one/token", ["more", "than", "one", "token"])
+        check("/has/numbers/0/and/symbols/^", ["has", "numbers", "0", "and", "symbols", "^"])
+        check("/~0/this/is/telda", ["~", "this", "is", "telda"])
+        check("/~1/this/is/forward-slash", ["/", "this", "is", "forward-slash"])
+        check("/\\\\/no-escaping", ["\\\\", "no-escaping"])
+        check("////empty/tokens/are/ok", ["", "", "", "empty", "tokens", "are", "ok"])
+
+    def configdb_path_join(self, yang_s, data):
+        def check(tokens, path):
+            expected=path
+            actual=yang_s.configdb_path_join(tokens)
+            assert expected == actual
+
+        check([], "/",)
+        check([""], "/",)
+        check(["token"], "/token")
+        check(["more", "than", "one", "token"], "/more/than/one/token")
+        check(["has", "numbers", "0", "and", "symbols", "^"], "/has/numbers/0/and/symbols/^")
+        check(["~", "this", "is", "telda"], "/~0/this/is/telda")
+        check(["/", "this", "is", "forward-slash"], "/~1/this/is/forward-slash")
+        check(["\\\\", "no-escaping"], "/\\\\/no-escaping")
+        check(["", "", "", "empty", "tokens", "are", "ok"], "////empty/tokens/are/ok")
+        check(["~token", "telda-not-followed-by-0-or-1"], "/~0token/telda-not-followed-by-0-or-1")
 
     """
     This is helper function to load YANG models for tests cases, which works
@@ -378,6 +428,86 @@ class Test_SonicYang(object):
 
         # load config and create Data tree
         syc.loadData(jIn)
+
+        return
+
+    def test_loaddata_quiet_suppresses_syslog_on_success(self, sonic_yang_data, monkeypatch):
+        # With quiet=True, the informational "Try to load Data" sysLog
+        # call must not be emitted. Exception path is covered below.
+        # monkeypatch.setattr cleanly reverts the instance-level override
+        # on teardown so state does not leak across tests.
+        test_file = sonic_yang_data['test_file']
+        syc = sonic_yang_data['syc']
+        jIn = json.loads(self.readIjsonInput(test_file, 'SAMPLE_CONFIG_DB_JSON'))
+
+        calls = []
+        monkeypatch.setattr(syc, 'sysLog',
+                            lambda *a, **kw: calls.append((a, kw)))
+
+        syc.loadData(jIn, quiet=True)
+
+        msgs = [kw.get('msg', '') for (_a, kw) in calls] + [
+            a[0] for (a, _kw) in calls if a
+        ]
+        assert not any('Try to load Data' in str(m) for m in msgs), \
+            "quiet=True must suppress 'Try to load Data' sysLog: {}".format(msgs)
+        assert not any('Data Loading Failed' in str(m) for m in msgs), \
+            "quiet=True must suppress 'Data Loading Failed' sysLog: {}".format(msgs)
+
+        return
+
+    def test_loaddata_quiet_suppresses_syslog_on_failure(self, sonic_yang_data, monkeypatch):
+        # With quiet=True, the LOG_ERR "Data Loading Failed" sysLog call
+        # must not be emitted even when parse_data_mem raises. The
+        # SonicYangException must still be raised so the caller sees the
+        # failure. monkeypatch.setattr cleanly reverts on teardown.
+        test_file = sonic_yang_data['test_file']
+        syc = sonic_yang_data['syc']
+        jIn = json.loads(self.readIjsonInput(test_file, 'SAMPLE_CONFIG_DB_JSON'))
+
+        calls = []
+
+        def _boom(*a, **kw):
+            raise RuntimeError('forced parse failure')
+
+        monkeypatch.setattr(syc, 'sysLog',
+                            lambda *a, **kw: calls.append((a, kw)))
+        monkeypatch.setattr(syc.ctx, 'parse_data_mem', _boom)
+
+        raised = False
+        try:
+            syc.loadData(jIn, quiet=True)
+        except sy.SonicYangException:
+            raised = True
+        assert raised, "SonicYangException must still be raised even when quiet=True"
+
+        msgs = [kw.get('msg', '') for (_a, kw) in calls] + [
+            a[0] for (a, _kw) in calls if a
+        ]
+        assert not any('Data Loading Failed' in str(m) for m in msgs), \
+            "quiet=True must suppress 'Data Loading Failed' sysLog on failure: {}".format(msgs)
+
+        return
+
+    def test_loaddata_default_logs_syslog_on_success(self, sonic_yang_data, monkeypatch):
+        # Default (quiet=False) preserves existing behavior: the
+        # "Try to load Data" sysLog call must be emitted on success.
+        # monkeypatch.setattr cleanly reverts on teardown.
+        test_file = sonic_yang_data['test_file']
+        syc = sonic_yang_data['syc']
+        jIn = json.loads(self.readIjsonInput(test_file, 'SAMPLE_CONFIG_DB_JSON'))
+
+        calls = []
+        monkeypatch.setattr(syc, 'sysLog',
+                            lambda *a, **kw: calls.append((a, kw)))
+
+        syc.loadData(jIn)
+
+        msgs = [kw.get('msg', '') for (_a, kw) in calls] + [
+            a[0] for (a, _kw) in calls if a
+        ]
+        assert any('Try to load Data' in str(m) for m in msgs), \
+            "default quiet=False must log 'Try to load Data': {}".format(msgs)
 
         return
 
