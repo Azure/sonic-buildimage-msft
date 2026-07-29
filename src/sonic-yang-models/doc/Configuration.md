@@ -2751,10 +2751,35 @@ monitoring sessions for the vnet routes and is optional.
 }
 ```
 
+### VNET_ROUTE
+
+VNET_ROUTE table has vnet_name|prefix as the object key, where vnet_name is the name of the VNet and prefix is the IPv4 or IPv6 prefix associated with the vnet route. The table includes the following attributes:
+- NEXTHOP: Comma-separated nexthop IPs (mandatory). IPv4 and IPv6 addresses are supported. They are used to identify the nexthops of the vnet route.
+- IFNAME: The interface names (mandatory), such as "Ethernet1". It identifies the outgoing interfaces for the vnet route.
+
+```
+{
+  "VNET_ROUTE": {
+    "Vnet_2000|100.100.3.0/24": {
+        "nexthop": "100.100.3.1,100.100.3.2",
+        "ifname": "Ethernet1,Ethernet2"
+    },
+    "Vnet_3000|100.100.4.0/24": {
+        "nexthop": "100.100.4.1",
+        "ifname": "Ethernet2"
+    },
+    "Vnet_4000|fc00::/64": {
+        "nexthop": "2001:db8::1,2001:db8::2",
+        "ifname": "Ethernet3,Ethernet4"
+    }
+  }
+}
+```
+
 ### VNET_ROUTE_TUNNEL
 
-VNET_ROUTE_TUNNEL table has vnet_name|prefix as the object key, where vnet_name is the name of the VNet and prefix is the ip4 prefix associated with the route tunnel. The table includes the following attributes:
-- ENDPOINT: Comma-separated endpoint/nexthop tunnel IPs (mandatory). They are used to identify the endpoints of the tunnel.
+VNET_ROUTE_TUNNEL table has vnet_name|prefix as the object key, where vnet_name is the name of the VNet and prefix is the IPv4 or IPv6 prefix associated with the route tunnel. The table includes the following attributes:
+- ENDPOINT: Comma-separated endpoint/nexthop tunnel IPs (mandatory). IPv4 and IPv6 addresses are supported. They are used to identify the endpoints of the tunnel.
 - MAC_ADDRESS: Comma-separated inner destination MAC addresses in the encapsulated packet (optional).  They should be 12-hexadecimal digit values.
 - VNI: Comma-separated VNI values in the encapsulated packet (optional). They should be numeric values.
 - CONSISTENT_HASHING_BUCKETS: Number of consistent hashing buckets to use, if consistent hashing is desired (optional). It should be a numeric value.
@@ -2762,7 +2787,7 @@ VNET_ROUTE_TUNNEL table has vnet_name|prefix as the object key, where vnet_name 
 ```
 {
   "VNET_ROUTE_TUNNEL": {
-        "Vnet_1000|100.200.1.1/32": {
+    "Vnet_1000|100.200.1.1/32": {
         "endpoint": "192.174.1.1,192.174.1.2",
         "mac_address": "f8:25:84:98:22:a1,f8:25:84:98:22:a2",
         "vni": "10010,10011",
@@ -2776,6 +2801,11 @@ VNET_ROUTE_TUNNEL table has vnet_name|prefix as the object key, where vnet_name 
         "endpoint": "192.168.1.2",
         "mac_address": "f8:22:83:99:22:a2",
         "vni": "10012"
+    },
+    "Vnetv6_v6-0|fc00::/64": {
+        "endpoint": "2001:db8::1,2001:db8::2",
+        "mac_address": "f8:22:83:99:22:a3,f8:22:83:99:22:a4",
+        "vni": "10013,10014"
     }
   }
 }

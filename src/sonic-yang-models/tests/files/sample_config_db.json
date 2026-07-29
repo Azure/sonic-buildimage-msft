@@ -2414,6 +2414,16 @@
                 "overlay_dmac": "22:33:44:55:66:77"
             }
         },
+        "VNET_ROUTE": {
+            "vnet1|100.100.4.0/24": {
+                "nexthop": "100.100.4.1,100.100.4.2",
+                "ifname": "Ethernet1,Ethernet2"
+            },
+            "vnet1|fc00::/64": {
+                "nexthop": "2001:db8::1",
+                "ifname": "Ethernet3"
+            }
+        },
         "VNET_ROUTE_TUNNEL" : {
             "vnet1|10.0.0.0/24" : {
                 "endpoint": "192.168.1.1,192.168.1.2",
@@ -2421,6 +2431,11 @@
                 "vni": "10011,10012",
                 "consistent_hashing_buckets": "10",
                 "metric": "0"
+            },
+            "vnet1|fc00:1::/64" : {
+                "endpoint": "2001:db8::1",
+                "mac_address": "f9:22:83:99:22:a3",
+                "vni": "10013"
             }
         },
         "PORT_QOS_MAP": {
