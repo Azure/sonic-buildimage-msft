@@ -22,10 +22,11 @@ diff --git a/zebra/kernel_netlink.h b/zebra/kernel_netlink.h
 index 723ea97dc..e1f7f917a 100644
 --- a/zebra/kernel_netlink.h
 +++ b/zebra/kernel_netlink.h
-@@ -30,8 +30,52 @@ struct zebra_ns;
+@@ -30,8 +30,51 @@ struct zebra_ns;
  
  #define RTM_NHA(h)                                                             \
  	((struct rtattr *)(((char *)(h)) + NLMSG_ALIGN(sizeof(struct nhmsg))))
+-
 +/* FPM-specific extension values, for messages and attributes */
 +
 +typedef enum {
