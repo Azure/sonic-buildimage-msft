@@ -49,9 +49,11 @@
             "default_brkout_mode": "8x100G"
         },
         "Ethernet128": {
+            "fec": "rs",
             "default_brkout_mode": "8x100G"
         },
         "Ethernet136": {
+            "fec": "rs",
             "default_brkout_mode": "8x100G"
         },
         "Ethernet144": {
