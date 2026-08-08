@@ -7,12 +7,10 @@
 Unit tests for the pddf_config_parser module.
 """
 
-import sys
 import os
 import jinja2
 import json
 import pytest
-from unittest.mock import MagicMock
 
 
 @pytest.fixture(scope="function", autouse=True)
@@ -22,12 +20,6 @@ def pddf_config_parser_module():
 
     yield pddf_config_parser
 
-# Mock sonic_py_common if not available
-try:
-    import sonic_py_common
-except ImportError:
-    sys.modules["sonic_py_common"] = MagicMock()
-    sys.modules["sonic_py_common.logger"] = MagicMock()
 
 CWD = os.path.dirname(os.path.realpath(__file__))
 BASE_PLATFORM_PDDF_PATH = "../../../../../../device/nexthop/{}/pddf"
