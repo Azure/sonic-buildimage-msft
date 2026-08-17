@@ -35,7 +35,13 @@ bool fpm_mac_decode(const struct nlmsghdr *hdr, struct fpm_local_mac *out)
 	decoded.ifindex = ndm->ndm_ifindex;
 	decoded.generation = hdr->nlmsg_seq;
 	decoded.del = (hdr->nlmsg_type == RTM_DELNEIGH);
-	decoded.sticky = !!(ndm->ndm_state & NUD_NOARP);
+	decoded.protocol = RTPROT_UNSPEC;
+	/* Stickiness rides in ndm_flags as NTF_STICKY, the same field zebra's
+	 * kernel path reads. It must not be taken from ndm_state: NUD_NOARP
+	 * means the entry does not age, which is a different property, and
+	 * conflating the two advertises every non-ageing MAC to BGP with the
+	 * EVPN sticky bit and so blocks MAC mobility. */
+	decoded.sticky = !!(ndm->ndm_flags & NTF_STICKY);
 
 	len = (int)(hdr->nlmsg_len - NLMSG_LENGTH(sizeof(struct ndmsg)));
 	rta = (struct rtattr *)((char *)ndm + NLMSG_ALIGN(sizeof(struct ndmsg)));
@@ -53,6 +59,11 @@ bool fpm_mac_decode(const struct nlmsghdr *hdr, struct fpm_local_mac *out)
 				break;
 			decoded.vid = *(uint16_t *)RTA_DATA(rta);
 			break;
+		case NDA_PROTOCOL:
+			if (RTA_PAYLOAD(rta) < sizeof(uint8_t))
+				break;
+			decoded.protocol = *(uint8_t *)RTA_DATA(rta);
+			break;
 		default:
 			break;
 		}
@@ -61,6 +72,11 @@ bool fpm_mac_decode(const struct nlmsghdr *hdr, struct fpm_local_mac *out)
 	/* Without a MAC there is nothing to install, and a caller acting on a
 	 * partially filled struct would install a zero MAC. */
 	if (!have_mac)
+		return false;
+
+	/* Loop guard, mirroring zebra's kernel path: an entry zebra itself
+	 * originated must never be fed back in as a locally learnt MAC. */
+	if (decoded.protocol == RTPROT_ZEBRA)
 		return false;
 
 	*out = decoded;

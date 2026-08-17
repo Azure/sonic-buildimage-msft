@@ -97,12 +97,65 @@ static void test_decode_del_and_sticky(void)
 	CU_ASSERT_TRUE(out.del);
 	CU_ASSERT_EQUAL(out.generation, 9);
 
+	/* Stickiness comes from NTF_STICKY in ndm_flags. */
 	msg_init(&m, RTM_NEWNEIGH, 1);
-	m.ndm.ndm_state = NUD_NOARP;
+	m.ndm.ndm_flags = NTF_STICKY;
 	msg_add_attr(&m, NDA_LLADDR, kMac, ETH_ALEN);
 	CU_ASSERT_TRUE(fpm_mac_decode(&m.n, &out));
 	CU_ASSERT_TRUE(out.sticky);
 	CU_ASSERT_FALSE(out.del);
+
+	/* NUD_NOARP means "does not age", not "sticky". Treating it as sticky
+	 * would set the EVPN sticky bit on every hardware-learnt MAC and stop
+	 * those MACs from moving. */
+	msg_init(&m, RTM_NEWNEIGH, 1);
+	m.ndm.ndm_state = NUD_NOARP;
+	msg_add_attr(&m, NDA_LLADDR, kMac, ETH_ALEN);
+	CU_ASSERT_TRUE(fpm_mac_decode(&m.n, &out));
+	CU_ASSERT_FALSE(out.sticky);
+
+	/* The encoding actually on the wire: zebra and fpmsyncd both set
+	 * NTF_STICKY and NUD_NOARP together for a sticky entry. */
+	msg_init(&m, RTM_NEWNEIGH, 1);
+	m.ndm.ndm_state = NUD_REACHABLE | NUD_NOARP;
+	m.ndm.ndm_flags = NTF_MASTER | NTF_EXT_LEARNED | NTF_STICKY;
+	msg_add_attr(&m, NDA_LLADDR, kMac, ETH_ALEN);
+	CU_ASSERT_TRUE(fpm_mac_decode(&m.n, &out));
+	CU_ASSERT_TRUE(out.sticky);
+}
+
+/* fpmsyncd marks hardware-learnt MACs with NDA_PROTOCOL = RTPROT_HW, the FPM
+ * equivalent of the kernel path's "proto hw". */
+static void test_decode_protocol(void)
+{
+	struct fpm_local_mac out;
+	struct mac_msg m;
+	uint8_t proto = RTPROT_HW;
+
+	msg_init(&m, RTM_NEWNEIGH, 3);
+	msg_add_attr(&m, NDA_LLADDR, kMac, ETH_ALEN);
+	msg_add_attr(&m, NDA_PROTOCOL, &proto, sizeof(proto));
+	CU_ASSERT_TRUE(fpm_mac_decode(&m.n, &out));
+	CU_ASSERT_EQUAL(out.protocol, RTPROT_HW);
+
+	/* Absent NDA_PROTOCOL leaves the entry unattributed. */
+	msg_init(&m, RTM_NEWNEIGH, 3);
+	msg_add_attr(&m, NDA_LLADDR, kMac, ETH_ALEN);
+	CU_ASSERT_TRUE(fpm_mac_decode(&m.n, &out));
+	CU_ASSERT_EQUAL(out.protocol, RTPROT_UNSPEC);
+}
+
+/* A MAC zebra originated must not be fed back to it as a local MAC. */
+static void test_decode_rejects_zebra_protocol(void)
+{
+	struct fpm_local_mac out;
+	struct mac_msg m;
+	uint8_t proto = RTPROT_ZEBRA;
+
+	msg_init(&m, RTM_NEWNEIGH, 4);
+	msg_add_attr(&m, NDA_LLADDR, kMac, ETH_ALEN);
+	msg_add_attr(&m, NDA_PROTOCOL, &proto, sizeof(proto));
+	CU_ASSERT_FALSE(fpm_mac_decode(&m.n, &out));
 }
 
 /* Without NDA_LLADDR there is no MAC to install; accepting the message would
@@ -190,6 +243,9 @@ int main(void)
 
 	if (!CU_add_test(suite, "add decodes all fields", test_decode_add) ||
 	    !CU_add_test(suite, "delete and sticky", test_decode_del_and_sticky) ||
+	    !CU_add_test(suite, "NDA_PROTOCOL decoded", test_decode_protocol) ||
+	    !CU_add_test(suite, "zebra-originated rejected",
+			 test_decode_rejects_zebra_protocol) ||
 	    !CU_add_test(suite, "NDA_LLADDR required",
 			 test_decode_requires_lladdr) ||
 	    !CU_add_test(suite, "non-bridge rejected",
