@@ -97,7 +97,7 @@ join_test_data = {
     0: {
         common_test.DESCR: "Regular insecure join",
         common_test.RETVAL: 0,
-        common_test.ARGS: ["10.3.157.24", 6443, True, False],
+        common_test.ARGS: ["10.3.157.24", 6443, "true", False],
         common_test.PROC_CMD: [
             "kubectl --kubeconfig {} --request-timeout 20s drain none \
 --ignore-daemonsets".format(KUBE_ADMIN_CONF),
@@ -121,7 +121,7 @@ none".format(KUBE_ADMIN_CONF),
     1: {
         common_test.DESCR: "Regular secure join",
         common_test.RETVAL: 0,
-        common_test.ARGS: ["10.3.157.24", 6443, False, False],
+        common_test.ARGS: ["10.3.157.24", 6443, "false", False],
         common_test.PROC_CMD: [
             "kubectl --kubeconfig {} --request-timeout 20s drain none \
 --ignore-daemonsets".format(KUBE_ADMIN_CONF),
@@ -145,7 +145,7 @@ none".format(KUBE_ADMIN_CONF),
     2: {
         common_test.DESCR: "Skip join as already connected",
         common_test.RETVAL: 0,
-        common_test.ARGS: ["10.3.157.24", 6443, True, False],
+        common_test.ARGS: ["10.3.157.24", 6443, "true", False],
         common_test.NO_INIT: True,
         common_test.PROC_CMD: [
             "systemctl start kubelet"
@@ -154,7 +154,7 @@ none".format(KUBE_ADMIN_CONF),
     3: {
         common_test.DESCR: "Regular join: fail due to unable to lock",
         common_test.RETVAL: -1,
-        common_test.ARGS: ["10.3.157.24", 6443, False, False],
+        common_test.ARGS: ["10.3.157.24", 6443, "false", False],
         common_test.FAIL_LOCK: True
     }
 }

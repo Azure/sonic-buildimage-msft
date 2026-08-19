@@ -50,7 +50,7 @@ module sonic-kubernetes_master {
                     description "This configuration identicates it will download kubernetes
                                 CA by http other than https";
                     type stypes:boolean_type;
-                    default "true";
+                    default "false";
                 }
 
             }

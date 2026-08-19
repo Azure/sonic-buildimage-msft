@@ -7,12 +7,10 @@ import inspect
 import json
 import os
 import shutil
-import ssl
 import subprocess
 import sys
 import syslog
 import tempfile
-import urllib.request
 import base64
 from urllib.parse import urlparse
 
@@ -197,25 +195,6 @@ def _take_lock():
     return lock_fd
 
 
-def _download_file(server, port, insecure):
-    """ Download file from Kube master to assist join as node. """
-
-    if insecure:
-        r = urllib.request.urlopen(SERVER_ADMIN_URL.format(server),
-                context=ssl._create_unverified_context())
-    else:
-        r = urllib.request.urlopen(SERVER_ADMIN_URL.format(server))
-
-    (h, fname) = tempfile.mkstemp(suffix="_kube_join")
-    data = r.read()
-    os.write(h, data)
-    os.close(h)
-    log_debug("Downloaded = {}".format(fname))
-
-    shutil.copyfile(fname, KUBE_ADMIN_CONF)
-
-    log_debug("{} downloaded".format(KUBE_ADMIN_CONF))
-
 
 def _gen_cli_kubeconf(server, port, insecure):
     """generate identity which can help authenticate and 
@@ -242,7 +221,7 @@ users:
     client-certificate-data: {{ ame_crt }}
     client-key-data: {{ ame_key }}
     """
-    if insecure:
+    if insecure.lower() == "true":
         r = requests.get(K8S_CA_URL.format(server, port), cert=(AME_CRT, AME_KEY), verify=False)
     else:
         r = requests.get(K8S_CA_URL.format(server, port), cert=(AME_CRT, AME_KEY))
