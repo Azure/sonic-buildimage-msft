@@ -58,6 +58,7 @@
 #include "zebra/zebra_evpn_mac.h"
 #include "zebra/zebra_evpn_mh.h"
 #include "zebra/kernel_netlink.h"
+#include "zebra/rt.h"
 #include "zebra/rt_netlink.h"
 #include "zebra/debug.h"
 #include "zebra/zebra_srv6.h"
@@ -735,12 +736,18 @@ static void fpm_apply_local_mac(struct event *t)
 	if (flm->del) {
 		zebra_vxlan_local_mac_del(ifp, zif->brslave_info.br_if,
 					  &mac, flm->vid);
+		kernel_del_local_mac(ifp, flm->vid, &mac);
 		goto done;
 	}
 
 	zebra_vxlan_local_mac_add_update(ifp, zif->brslave_info.br_if,
 					 &mac, flm->vid, flm->sticky,
 					 false, false);
+
+	/* The ASIC learned this MAC, not the kernel, so nothing else puts it in
+	 * the bridge FDB and the kernel would keep probing a reachable host.
+	 */
+	kernel_upd_local_mac(ifp, flm->vid, &mac, flm->sticky);
 
 	/* Record which replay refreshed this MAC so fpm_sweep_stale_local_macs()
 	 * can tell it apart from one left over by a previous session.
