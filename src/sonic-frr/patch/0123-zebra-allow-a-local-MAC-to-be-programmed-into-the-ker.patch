@@ -14,9 +14,10 @@ can already reach.
 
 Add kernel_upd_local_mac() and kernel_del_local_mac() for that case. The
 entry is written with NTF_EXT_LEARNED so the bridge does not age something
-it never learned, leaving ageing to whoever owns the port. The protocol is
-left as zebra's own rather than marking the entry hardware-learned, which
-would require the kernel to accept RTPROT_HW on a bridge FDB entry.
+it never learned, leaving ageing to whoever owns the port, and with
+RTPROT_HW so it records the switch ASIC as the origin, the same attribution
+fdbsyncd gave these MACs when it drove the kernel path itself. Remote MACs
+zebra installs keep RTPROT_ZEBRA.
 
 Nothing in zebra calls these yet; they are for a dataplane module to use, so
 existing behaviour is unchanged.
@@ -59,9 +60,9 @@ index 6f958b5c27..7b69665312 100644
 + *
 + * NTF_EXT_LEARNED stops the bridge ageing an entry it never learned itself,
 + * which is what keeps the kernel from probing a host the local dataplane can
-+ * already reach. The protocol is deliberately left as zebra's own: tagging the
-+ * entry as hardware-learned would require the kernel to accept RTPROT_HW on a
-+ * bridge FDB entry, and nothing reads the protocol back on this path.
++ * already reach. RTPROT_HW records that the switch ASIC learned it, which is
++ * what fdbsyncd wrote on the kernel path; zebra's own remote MACs keep
++ * RTPROT_ZEBRA, the protocol its read-back loop guard keys on.
 + */
 +static int netlink_local_mac_update(int cmd, const struct interface *ifp,
 +				    vlanid_t vid, const struct ethaddr *mac,
@@ -72,7 +73,7 @@ index 6f958b5c27..7b69665312 100644
 +		struct ndmsg ndm;
 +		char buf[256];
 +	} req;
-+	uint8_t protocol = RTPROT_ZEBRA;
++	uint8_t protocol = RTPROT_HW;
 +	struct zebra_vrf *zvrf;
 +	struct zebra_ns *zns;
 +

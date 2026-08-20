@@ -179,7 +179,13 @@ enum custom_rtattr_srv6_localsid_action {
 
 static const char *prov_name = "dplane_fpm_sonic";
 
+/* Pre-kernel provider that keeps zebra off the bridge FDB entries fpmsyncd owns. */
+static const char *prov_mac_name = "dplane_fpm_sonic_mac";
+
 static atomic_bool fpm_cleaning_up;
+
+/* Set once a local MAC has arrived over FPM, i.e. fpmsyncd owns local MACs. */
+static atomic_bool fpm_owns_local_macs;
 
 struct fpm_nl_ctx {
 	/* data plane connection. */
@@ -750,6 +756,9 @@ static void fpm_apply_local_mac(struct event *t)
 	 * could downgrade a static entry back to extern_learn.
 	 */
 	kernel_upd_local_mac(ifp, flm->vid, &mac, flm->sticky);
+
+	/* From here on zebra's own kernel write for local MACs is suppressed. */
+	atomic_store_explicit(&fpm_owns_local_macs, true, memory_order_relaxed);
 
 	zebra_vxlan_local_mac_add_update(ifp, zif->brslave_info.br_if,
 					 &mac, flm->vid, flm->sticky,
@@ -4071,6 +4080,46 @@ static void fpm_fdb_nhg_replay(struct event *t)
 	event_add_event(zrouter.master, fpm_mac_send, fnc, 0, &fnc->t_macwalk);
 }
 
+/*
+ * A hardware-learnt MAC belongs to the ASIC, so fpm_apply_local_mac() writes it
+ * with RTPROT_HW. zebra's Ethernet Segment sync would install the same MAC
+ * through the dataplane and overwrite that with RTPROT_ZEBRA, which records the
+ * wrong source and leaves two writers racing on one entry. Suppress the kernel
+ * half of zebra's write once FPM is driving local MACs; remote MACs are left
+ * alone because zebra really is their source.
+ */
+static int fpm_nl_skip_local_mac(struct zebra_dplane_provider *prov)
+{
+	struct zebra_dplane_ctx *ctx;
+	int counter, limit;
+
+	limit = dplane_provider_get_work_limit(prov);
+
+	for (counter = 0; counter < limit; counter++) {
+		enum dplane_op_e op;
+
+		ctx = dplane_provider_dequeue_in_ctx(prov);
+		if (ctx == NULL)
+			break;
+
+		op = dplane_ctx_get_op(ctx);
+		if ((op == DPLANE_OP_MAC_INSTALL ||
+		     op == DPLANE_OP_MAC_DELETE) &&
+		    !CHECK_FLAG(dplane_ctx_mac_get_update_flags(ctx),
+				DPLANE_MAC_REMOTE) &&
+		    atomic_load_explicit(&fpm_owns_local_macs,
+					 memory_order_relaxed))
+			dplane_ctx_set_skip_kernel(ctx);
+
+		dplane_provider_enqueue_out_ctx(prov, ctx);
+	}
+
+	if (counter >= limit)
+		dplane_provider_work_ready();
+
+	return 0;
+}
+
 static int fpm_nl_new(struct event_loop *tm)
 {
 	struct zebra_dplane_provider *prov = NULL;
@@ -4084,6 +4133,13 @@ static int fpm_nl_new(struct event_loop *tm)
 
 	if (IS_ZEBRA_DEBUG_DPLANE)
 		zlog_debug("%s register status: %d", prov_name, rv);
+
+	rv = dplane_provider_register(prov_mac_name, DPLANE_PRIO_PRE_KERNEL, 0,
+				      NULL, fpm_nl_skip_local_mac, NULL, NULL,
+				      NULL);
+
+	if (IS_ZEBRA_DEBUG_DPLANE)
+		zlog_debug("%s register status: %d", prov_mac_name, rv);
 
 	hook_register(zebra_fdb_nh_update, fpm_fdb_nh_update);
 	hook_register(zebra_fdb_nhg_update, fpm_fdb_nhg_update);
