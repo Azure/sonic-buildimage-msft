@@ -741,14 +741,19 @@ static void fpm_apply_local_mac(struct event *t)
 		goto done;
 	}
 
+	/* The ASIC learned this MAC, not the kernel, so nothing else puts it in
+	 * the bridge FDB and the kernel would keep probing a reachable host.
+	 * This seeds the entry the way the kernel would have learnt it, and has
+	 * to happen before zebra sees the MAC: a MAC on an Ethernet Segment
+	 * makes zebra queue its own sync install marking the entry static, and
+	 * that runs on the dplane thread. Seeding afterwards would race it and
+	 * could downgrade a static entry back to extern_learn.
+	 */
+	kernel_upd_local_mac(ifp, flm->vid, &mac, flm->sticky);
+
 	zebra_vxlan_local_mac_add_update(ifp, zif->brslave_info.br_if,
 					 &mac, flm->vid, flm->sticky,
 					 false, false);
-
-	/* The ASIC learned this MAC, not the kernel, so nothing else puts it in
-	 * the bridge FDB and the kernel would keep probing a reachable host.
-	 */
-	kernel_upd_local_mac(ifp, flm->vid, &mac, flm->sticky);
 
 	/* Record which replay refreshed this MAC so fpm_local_mac_replay_end()
 	 * can tell it apart from one left over by a previous session.
@@ -2881,6 +2886,16 @@ static int fpm_nl_enqueue(struct fpm_nl_ctx *fnc, struct zebra_dplane_ctx *ctx)
 
 	case DPLANE_OP_MAC_INSTALL:
 	case DPLANE_OP_MAC_DELETE:
+		/* Local MACs originate from fpmsyncd, so echoing them back is a
+		 * loop. It is also unsafe: dplane_local_mac_add() only sets the
+		 * type of its stack vtep to IPADDR_NONE, and the encoder still
+		 * emits a 16 byte NDA_DST from that never-initialised union.
+		 * The replay walk applies the same rule.
+		 */
+		if (!CHECK_FLAG(dplane_ctx_mac_get_update_flags(ctx),
+				DPLANE_MAC_REMOTE))
+			return 0;
+
 		rv = netlink_macfdb_update_ctx(ctx, nl_buf, sizeof(nl_buf));
 		if (rv <= 0) {
 			zlog_err("%s: netlink_macfdb_update_ctx failed",
