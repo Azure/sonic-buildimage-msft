@@ -1,0 +1,18 @@
+From: Vivek Kumar Verma <vivekverma@arista.com>
+Date:   Wed May 7 07:11:47 2025 +0000
+Subject: [PATCH 1/2] Fix snappi api to retain group mode based on a flag.
+
+
+diff --git a/snappi_ixnetwork/resourcegroup.py b/snappi_ixnetwork/resourcegroup.py
+index 0b57f493..4ff0258d 100644
+--- a/snappi_ixnetwork/resourcegroup.py
++++ b/snappi_ixnetwork/resourcegroup.py
+@@ -190,7 +190,7 @@ class ResourceGroup(object):
+                                 card,
+                                 group_id,
+                                 current_mode,
+-                                group_mode,
++                                group_mode if self._api._retain_group_mode is False else current_mode
+                             )
+                             if l1_name is not None:
+                                 if l1_name not in self.layer1_check:
