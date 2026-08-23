@@ -140,7 +140,7 @@ stages:
   - name: PTF_IMAGE_TAG
     # Branch-aligned docker-ptf image tag used for PR test. PR builds only.
     ${{ if eq(variables['Build.Reason'], 'PullRequest') }}:
-      value: '202605'
+      value: '202608'
     ${{ else }}:
       value: ''
 

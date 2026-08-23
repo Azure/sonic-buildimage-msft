@@ -8,14 +8,14 @@ schedules:
 - cron: "0 8 * * *"
   branches:
     include:
-    - 202605
+    - 202608
   always: true
 
 trigger: none
 pr:
   branches:
     include:
-    - 202605
+    - 202608
   paths:
     include:
     - dockers/docker-sonic-mgmt
@@ -70,20 +70,20 @@ stages:
     - bash: |
         set -ex
         docker load -i $(Build.ArtifactStagingDirectory)/target/docker-sonic-mgmt.gz
-        docker tag docker-sonic-mgmt:latest $REGISTRY_SERVER/docker-sonic-mgmt:202605-lastbuild
+        docker tag docker-sonic-mgmt:latest $REGISTRY_SERVER/docker-sonic-mgmt:202608-lastbuild
         docker images
       env:
         REGISTRY_SERVER: ${{ parameters.registry_url }}
-      displayName: 'Load and tag docker-sonic-mgmt as 202605-lastbuild'
+      displayName: 'Load and tag docker-sonic-mgmt as 202608-lastbuild'
 
     - task: Docker@2
-      displayName: 'Push docker-sonic-mgmt:202605-lastbuild to registry'
+      displayName: 'Push docker-sonic-mgmt:202608-lastbuild to registry'
       condition: succeeded()
       inputs:
         containerRegistry: ${{ parameters.registry_conn }}
         repository: docker-sonic-mgmt
         command: push
-        tags: 202605-lastbuild
+        tags: 202608-lastbuild
 
 - stage: Test
   dependsOn: Build
@@ -157,7 +157,7 @@ stages:
       INCLUDE_JOBS: "all"
       OVERRIDE_PARAMS:
         REPO_NAME: "sonic-mgmt"
-        SETUP_CONTAINER_PARAMS: "-i ${{ parameters.registry_url }}/docker-sonic-mgmt:202605-lastbuild"
+        SETUP_CONTAINER_PARAMS: "-i ${{ parameters.registry_url }}/docker-sonic-mgmt:202608-lastbuild"
 
 - stage: Publish
   dependsOn: Test
@@ -174,17 +174,17 @@ stages:
     - bash: |
         set -ex
         docker load -i $(Pipeline.Workspace)/docker-sonic-mgmt/target/docker-sonic-mgmt.gz
-        docker tag docker-sonic-mgmt:latest $REGISTRY_SERVER/docker-sonic-mgmt:202605
+        docker tag docker-sonic-mgmt:latest $REGISTRY_SERVER/docker-sonic-mgmt:202608
         docker images
       env:
         REGISTRY_SERVER: ${{ parameters.registry_url }}
-      displayName: 'Load and tag docker-sonic-mgmt as 202605'
+      displayName: 'Load and tag docker-sonic-mgmt as 202608'
 
     - task: Docker@2
-      displayName: 'Push docker-sonic-mgmt:202605 to registry'
+      displayName: 'Push docker-sonic-mgmt:202608 to registry'
       condition: succeeded()
       inputs:
         containerRegistry: ${{ parameters.registry_conn }}
         repository: docker-sonic-mgmt
         command: push
-        tags: 202605
+        tags: 202608
