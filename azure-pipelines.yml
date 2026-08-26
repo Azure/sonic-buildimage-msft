@@ -27,14 +27,14 @@ resources:
   repositories:
   - repository: sonic-mgmt
     type: github
-    name: sonic-net/sonic-mgmt
-    ref: 202605
+    name: Azure/sonic-mgmt.msft
+    ref: 202606
     endpoint: sonic-net
   - repository: buildimage
     type: github
-    name: sonic-net/sonic-buildimage
+    name: Azure/sonic-buildimage-msft
     endpoint: sonic-net
-    ref: 202605
+    ref: 202606
 
 parameters:
 - name: TIMEOUT_IN_MINUTES_PR_TEST
