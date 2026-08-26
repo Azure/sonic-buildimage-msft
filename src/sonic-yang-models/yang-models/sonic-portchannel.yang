@@ -24,6 +24,10 @@ module sonic-portchannel {
 
     description "PORTCHANNEL yang Module for SONiC OS";
 
+    revision 2026-08-26 {
+        description "Add fallback types to YANG";
+    }
+
     revision 2021-06-13 {
         description "Change min-links valid range from 1-128 to 1-1024";
     }
@@ -38,6 +42,14 @@ module sonic-portchannel {
 
     revision 2019-07-01 {
         description "First Revision";
+    }
+
+    typedef lacp-fallback-type {
+        description "LACP fallback type";
+        type enumeration {
+            enum single;
+            enum static;
+        }
     }
 
 
@@ -110,6 +122,11 @@ module sonic-portchannel {
                 leaf fallback {
                     description "Enable LACP fallback feature";
                     type stypes:boolean_type;
+                }
+                leaf fallback_method {
+                    description "Specify type of LACP fallback to use when the LAG goes down. Only
+                                 effective when fallback is enabled.";
+                    type lacp-fallback-type;
                 }
                 leaf fast_rate {
                     description "Enable LACP fast rate";
