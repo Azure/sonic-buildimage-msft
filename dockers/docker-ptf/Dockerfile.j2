@@ -159,7 +159,7 @@ ENV PATH="/usr/local/go/bin:$HOME/go/bin:$PATH"
 RUN GRPCURL_VERSION=v1.9.3 \
     && git clone --depth 1 --branch "${GRPCURL_VERSION}" https://github.com/fullstorydev/grpcurl.git /tmp/grpcurl \
     && cd /tmp/grpcurl \
-    && go get google.golang.org/grpc@v1.79.3 \
+    && go get google.golang.org/grpc@v1.82.1 \
     && go get github.com/go-jose/go-jose/v4@latest \
     && go get golang.org/x/crypto@latest golang.org/x/net@latest golang.org/x/text@latest golang.org/x/sys@latest golang.org/x/oauth2@latest \
     && go mod tidy \
@@ -191,9 +191,9 @@ RUN set -eux \
     && ln -sf /usr/local/bin/influxdb3 /usr/local/bin/influxd \
     && rm -f "influxdb3-core-${INFLUXDB_VERSION}_${INFLUXDB_ARCH}.tar.gz" \
     && rm -rf "/tmp/influxdb3-core-${INFLUXDB_VERSION}" \
-    && pip3 install --target /usr/local/lib/influxdb3-python/lib/python3.13/site-packages "pip>=26.1" \
-    && NEWPIP=$(ls -d /usr/local/lib/influxdb3-python/lib/python3.13/site-packages/pip-*.dist-info | sort -V | tail -1) \
-    && find /usr/local/lib/influxdb3-python/lib/python3.13/site-packages -maxdepth 1 -name 'pip-*.dist-info' ! -path "$NEWPIP" -exec rm -rf {} +
+    && rm -rf /usr/local/lib/influxdb3-python/lib/python3.13/site-packages/pip \
+        /usr/local/lib/influxdb3-python/lib/python3.13/site-packages/pip-*.dist-info \
+    && rm -f /usr/local/lib/influxdb3-python/bin/pip*
 {% endif %}
 
 {% if PTF_ENV_PY_VER == "py3" %}
@@ -218,7 +218,7 @@ debs/{{ deb }}{{' '}}
 {% else %}
 RUN apt-get update
 # Install p4lang packages for DASH SAI support first and python-saithrift
-RUN apt install -y --reinstall ./debs/p4lang-pi_0.1.1-1_amd64.deb ./debs/p4lang-bmv2_1.15.0-9_amd64.deb ./debs/p4lang-p4c_1.2.4.2-2_amd64.deb ./debs/python-saithrift_0.9.4_amd64.deb
+RUN apt install -y --reinstall ./debs/p4lang-pi_0.1.1-1_amd64.deb ./debs/p4lang-bmv2_1.15.0-9_amd64.deb ./debs/p4lang-p4c_1.2.4.2-3_amd64.deb ./debs/python-saithrift_0.9.4_amd64.deb
 {% endif %}
 
 
@@ -456,6 +456,12 @@ ENV PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
 # Install the python-saithrift into the virtual environment
 RUN echo "/usr/lib/python3/dist-packages/saithrift-0.9-py3.11.egg" >> /root/env-python3/lib/python3.11/site-packages/easy-install.pth
 {% endif %}
+
+# pip is only needed to assemble the virtualenv. Remove it after the last
+# package installation to avoid shipping its vulnerable vendored dependencies.
+RUN rm -rf /root/env-python3/lib/python*/site-packages/pip \
+        /root/env-python3/lib/python*/site-packages/pip-*.dist-info \
+    && rm -f /root/env-python3/bin/pip*
 
 # {% if PTF_ENV_PY_VER == "py3" %}
 # # Create symlink so that test scripts and ptf_runner invocation path
