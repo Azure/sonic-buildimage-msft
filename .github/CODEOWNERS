@@ -62,7 +62,7 @@
 /src/hiredis/                           @sonic-net/sonic-management
 
 # yang
-/src/sonic-yang-models/                 @praveen-li @dgsudharsan @rathnasabapathyv @venkatmahalingam @qiluo-msft
+/src/sonic-yang-models/                 @praveen-li @dgsudharsan @rathnasabapathyv @venkatmahalingam @rimunagala @vaibhavhd
 /src/sonic-yang-mgmt/                   @sonet-net/sonic-management
 /src/libyang/                           @sonic-net/sonic-management
 /src/libyang1/                          @sonic-net/sonic-management
