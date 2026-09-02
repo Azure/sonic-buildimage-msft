@@ -178,7 +178,7 @@
   dev: '00'
   fn: '0'
   id: '1150'
-  name: 'PCI bridge: ASPEED Technology, Inc. AST1150 PCI-to-PCI Bridge (rev 11)'
+  name: 'PCI bridge: ASPEED Technology, Inc. AST1150 PCI-to-PCI Bridge (rev 12)'
 - bus: 08
   dev: '00'
   fn: '0'
