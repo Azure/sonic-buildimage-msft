@@ -50,6 +50,7 @@ class Test_yang_models:
             'MaxElements': ['Too many'],
             'UnknownElement': ['Unknown element'],
             'Missing': ['Missing required element'],
+            'ListKey': ['Missing required element'],
             'None': []
         }
 
@@ -270,7 +271,7 @@ class Test_yang_models:
                 else:
                     raise Exception("Unexpected Test")
         except Exception as e:
-            ret = FAIL * len(self.tests)
+            ret = FAIL * max(len(getattr(self, 'tests', [])), 1)
             printExceptionDetails()
 
         assert ret == 0

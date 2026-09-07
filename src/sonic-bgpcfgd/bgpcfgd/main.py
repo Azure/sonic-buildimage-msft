@@ -104,7 +104,9 @@ def do_work():
     if is_upstream_lc or is_upper_spine_router:
         # Prefix List Manager
         managers.append(AsPathMgr(common_objs, "CONFIG_DB", "DEVICE_METADATA"))
-        log_notice("Prefix List Manager and AsPath Manager are enabled for UpperSpineRouter/UpstreamLC")
+        log_notice("AsPath Manager is enabled for %s" % device_metadata["localhost"]["type"])
+
+    managers.append(PrefixListMgr(common_objs, "CONFIG_DB", "PREFIX_LIST"))
 
     managers.append(PrefixListMgr(common_objs, "CONFIG_DB", "PREFIX_LIST"))
 

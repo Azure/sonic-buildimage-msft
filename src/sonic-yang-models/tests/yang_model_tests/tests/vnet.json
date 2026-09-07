@@ -33,7 +33,7 @@
     },
     "VNET_ROUTE_TEST_DUPLICATE_NAME": {
         "desc": "VNET route configuration with duplicate name keys in VNET_ROUTE_LIST table.",
-        "eStr": "Duplicated instance of \"VNET_ROUTE_LIST\" list."
+        "eStr": ["Duplicated instance of \"VNET_ROUTE_LIST\" list."]
     },
     "VNET_ROUTE_TEST_INVALID_NEXTHOP": {
         "desc": "VNET route configuration with invalid nexthop IP value (256.256.256.256) in VNET_ROUTE_LIST table.",
@@ -190,7 +190,8 @@
 
     "VNET_ROUTE_TUNNEL_TEST_INVALID_CONSISTENT_HASHING": {
         "desc": "VNET route tunnel configuration with invalid consistent_hashing_buckets value (exceeds uint16 max).",
-        "eStr": "does not satisfy the constraint"
+        "eStrKey": "InvalidValue",
+        "eStr": ["consistent_hashing_buckets"]
     },
 
     "VNET_ROUTE_V6_PREFIX_TEST": {
