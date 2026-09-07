@@ -87,10 +87,18 @@ def constructor_with_constants(constants):
     return m
 
 @patch('bgpcfgd.managers_prefix_list.log_warn')
-def test_unsupported_prefix_type(mocked_log_warn):
+def test_dynamic_prefix_type(mocked_log_warn):
     m = constructor_with_constants({})
-    set_handler_test(m, "UNKNOWN_TYPE|10.0.0.0/24", {})
-    mocked_log_warn.assert_called_with("PrefixListMgr:: Prefix type 'UNKNOWN_TYPE' is not supported")
+    set_handler_test(m, "DYNAMIC_PREFIX|10.0.0.0/24", {"action": "permit"})
+    m.cfg_mgr.push.assert_called_with("\nip prefix-list DYNAMIC_PREFIX permit 10.0.0.0/24")
+    mocked_log_warn.assert_not_called()
+
+@patch('bgpcfgd.managers_prefix_list.log_warn')
+def test_dynamic_prefix_type_missing_action(mocked_log_warn):
+    m = constructor_with_constants({})
+    set_handler_test(m, "DYNAMIC_PREFIX|10.0.0.0/24", {})
+    mocked_log_warn.assert_called_with("PrefixListMgr:: Mandatory field 'action' is not defined for prefix list 'DYNAMIC_PREFIX'")
+    m.cfg_mgr.push.assert_not_called()
 
 @patch('bgpcfgd.managers_prefix_list.log_warn')
 def test_anchor_prefix_wrong_device(mocked_log_warn):
