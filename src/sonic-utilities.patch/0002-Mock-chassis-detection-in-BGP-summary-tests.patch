@@ -1,0 +1,48 @@
+Subject: [PATCH] Mock chassis detection in BGP summary tests
+
+The 202405 device_info.is_chassis implementation reads CONFIG_DB directly
+after Azure/sonic-buildimage-msft#2451, rather than calling get_platform_info.
+Mock the API used by MultiAsic.skip_display so the external-only summary
+tests still verify that the three internal peers are filtered out.
+Also mock the direct import in sonic_py_common.multi_asic, which uses the
+same detection API before classifying internal BGP sessions.
+
+---
+ tests/bgp_commands_test.py | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/tests/bgp_commands_test.py b/tests/bgp_commands_test.py
+--- a/tests/bgp_commands_test.py
++++ b/tests/bgp_commands_test.py
+@@ -401,12 +401,13 @@ class TestBgpCommandsSingleAsic(object):
+         indirect=['setup_single_bgp_instance_chassis']
+     )
+     @patch.object(multi_asic.MultiAsic, 'get_display_option', display_external)
+-    @patch('sonic_py_common.device_info.get_platform_info')
++    @patch('sonic_py_common.device_info.is_chassis')
++    @patch.object(masic, 'is_chassis', mock.MagicMock(return_value=True))
+     def test_bgp_summary_v4_chassis(
+         self, mock_is_chassis, setup_bgp_commands,
+         setup_single_bgp_instance_chassis
+     ):
+-        mock_is_chassis.return_value = {'switch_type': 'voq'}
++        mock_is_chassis.return_value = True
+         show = setup_bgp_commands
+         runner = CliRunner()
+         result = runner.invoke(
+@@ -420,12 +421,13 @@ class TestBgpCommandsSingleAsic(object):
+         indirect=['setup_single_bgp_instance_chassis']
+     )
+     @patch.object(multi_asic.MultiAsic, 'get_display_option', display_external)
+-    @patch('sonic_py_common.device_info.get_platform_info')
++    @patch('sonic_py_common.device_info.is_chassis')
++    @patch.object(masic, 'is_chassis', mock.MagicMock(return_value=True))
+     def test_bgp_summary_v6_chassis(
+         self, mock_is_chassis, setup_bgp_commands,
+         setup_single_bgp_instance_chassis
+     ):
+-        mock_is_chassis.return_value = {'switch_type': 'voq'}
++        mock_is_chassis.return_value = True
+         show = setup_bgp_commands
+         runner = CliRunner()
+         result = runner.invoke(

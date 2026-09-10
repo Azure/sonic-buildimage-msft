@@ -1,0 +1,3 @@
+0001-Avoid-Python-3.10-pattern-matching.patch
+0002-Mock-chassis-detection-in-BGP-summary-tests.patch
+0003-Preserve-grouping-metadata-for-CLI-generation.patch

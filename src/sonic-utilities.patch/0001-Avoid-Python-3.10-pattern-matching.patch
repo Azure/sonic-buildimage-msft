@@ -1,0 +1,45 @@
+From: Copilot <223556219+Copilot@users.noreply.github.com>
+Date: Wed, 9 Sep 2026 00:50:00 +0000
+Subject: [PATCH] Avoid Python 3.10 pattern matching
+
+The 202405 build environment uses Python 3.9, but the GCU bulk move
+backport uses structural pattern matching, which was introduced in Python
+3.10. Use equivalent if/elif dispatch so sonic-utilities can be imported
+and tested while building the Bullseye image.
+
+---
+ generic_config_updater/patch_sorter.py | 15 +++++++--------
+ 1 file changed, 7 insertions(+), 8 deletions(-)
+
+diff --git a/generic_config_updater/patch_sorter.py b/generic_config_updater/patch_sorter.py
+index ee33dbc..73610fd 100644
+--- a/generic_config_updater/patch_sorter.py
++++ b/generic_config_updater/patch_sorter.py
+@@ -1612,16 +1612,15 @@ class _BulkMoveGenerator:
+         return True
+ 
+     def __output_bulk_move(self, op, current_ptr, target_ptr, tokens, min_moves, restricted_only):
+-        match op:
+-            case OperationType.REMOVE:
+-                for move in self.__output_bulk_remove(current_ptr, target_ptr, tokens, min_moves, restricted_only):
+-                    yield move
+-            case OperationType.REPLACE:
+-                for move in self.__output_bulk_replace(current_ptr, target_ptr, tokens, min_moves, restricted_only):
+-                    yield move
+-            case OperationType.ADD:
+-                for move in self.__output_bulk_add(current_ptr, target_ptr, tokens, min_moves, restricted_only):
+-                    yield move
++        if op == OperationType.REMOVE:
++            for move in self.__output_bulk_remove(current_ptr, target_ptr, tokens, min_moves, restricted_only):
++                yield move
++        elif op == OperationType.REPLACE:
++            for move in self.__output_bulk_replace(current_ptr, target_ptr, tokens, min_moves, restricted_only):
++                yield move
++        elif op == OperationType.ADD:
++            for move in self.__output_bulk_add(current_ptr, target_ptr, tokens, min_moves, restricted_only):
++                yield move
+ 
+     def __output_bulk_add(self, current_ptr, target_ptr, tokens, min_moves, restricted_only):
+         group = JsonMoveGroup()
+-- 
+2.43.0

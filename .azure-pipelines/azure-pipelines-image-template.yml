@@ -54,6 +54,7 @@ jobs:
         displayName: 'Make configure'
     postSteps:
       - script: |
+          exit 0 # 202411 don't need docker-ptf now.
           BUILD_REASON=$(Build.Reason)
           echo "Build.Reason = $BUILD_REASON"
           echo "Build.DefinitionName = $BUILD_DEFINITIONNAME"
@@ -71,11 +72,15 @@ jobs:
               ./push_docker.sh $f $(REGISTRY_SERVER_PUBLIC) $PORT $(REGISTRY_USERNAME) "$REGISTRY_PASSWD" "$LABELS"
             done
           fi
-          mkdir -p $(Build.ArtifactStagingDirectory)/target
-          mv target/* $(Build.ArtifactStagingDirectory)/target/
         env:
           REGISTRY_PASSWD: $(REGISTRY_PASSWD)
-        displayName: Publish to Docker Registry and Copy Artifacts
+        displayName: Publish to Docker Registry
+        condition: always()
+      - script: |
+          set -e
+          mkdir -p $(Build.ArtifactStagingDirectory)/target
+          mv target/* $(Build.ArtifactStagingDirectory)/target/
+        displayName: Copy Artifacts
         condition: always()
       - publish:  $(Build.ArtifactStagingDirectory)
         artifact: 'sonic-buildimage.$(GROUP_NAME)$(GROUP_EXTNAME)'

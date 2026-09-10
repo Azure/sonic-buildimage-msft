@@ -81,17 +81,27 @@ class SonicYangExtMixin(SonicYangPathMixin):
         return True
 
     """
+    get_yang_model(): return the original JSON schema for a loaded module.
+    Unlike yJson, this retains uses/grouping metadata needed by CLI generation.
+    Returns None if the module is not loaded.
+    """
+    def get_yang_model(self, module_name):
+        module = self._get_module(module_name)
+        if module is None:
+            return None
+        return parse(module.print_mem(ly.LYD_JSON, ly.LYP_FORMAT))
+
+    """
     load JSON schema format from yang models
     """
     def _loadJsonYangModel(self):
 
         try:
             for f in self.yangFiles:
-                m = self.ctx.get_module(f)
-                if m is not None:
-                    xml = m.print_mem(ly.LYD_JSON, ly.LYP_FORMAT)
-                    self.yJson.append(parse(xml))
-                    self.sysLog(msg="Parsed Json for {}".format(m.name()))
+                model = self.get_yang_model(f)
+                if model is not None:
+                    self.yJson.append(model)
+                    self.sysLog(msg="Parsed Json for {}".format(f))
         except Exception as e:
             self.sysLog(msg="JSON schema Load failed:{}".format(str(e)), \
                 debug=syslog.LOG_ERR, doPrint=True)
@@ -131,10 +141,13 @@ class SonicYangExtMixin(SonicYangPathMixin):
 
             for grouping in groupings:
                 gName = grouping["@name"]
-                self.preProcessedYang['grouping'][moduleName][gName] = dict()
-                self.preProcessedYang['grouping'][moduleName][gName]["leaf"] = grouping.get('leaf')
-                self.preProcessedYang['grouping'][moduleName][gName]["leaf-list"] = grouping.get('leaf-list')
-                self.preProcessedYang['grouping'][moduleName][gName]["choice"] = grouping.get('choice')
+                gdata = dict()
+                for node_type in ['leaf', 'leaf-list', 'choice', 'container',
+                                  'list', 'uses']:
+                    val = grouping.get(node_type)
+                    if val is not None:
+                        gdata[node_type] = val
+                self.preProcessedYang['grouping'][moduleName][gName] = gdata
 
         except Exception as e:
             self.sysLog(msg="_preProcessYangGrouping failed:{}".format(str(e)), \
@@ -224,7 +237,8 @@ class SonicYangExtMixin(SonicYangPathMixin):
                 self._compileUsesClauseModel(module, item)
             return
 
-        for model_name in [ "container", "list", "choice", "case" ]:
+        for model_name in [ "container", "list", "choice", "case",
+                            "notification" ]:
             node = model.get(model_name)
             if node:
                 self._compileUsesClauseModel(module, node)
@@ -248,11 +262,10 @@ class SonicYangExtMixin(SonicYangPathMixin):
             grouping = uses['@name'].split(':')[-1].strip()
             groupdata = self.preProcessedYang['grouping'][uses_module_name][grouping]
 
-            # Merge leaf from uses
             refine = uses.get("refine")
-            self._compileUsesClauseList(model, groupdata, 'leaf', refine)
-            self._compileUsesClauseList(model, groupdata, 'leaf-list', refine)
-            self._compileUsesClauseList(model, groupdata, 'choice', refine)
+            for node_type in ['leaf', 'leaf-list', 'choice', 'container',
+                              'list', 'uses']:
+                self._compileUsesClauseList(model, groupdata, node_type, refine)
 
         # Delete the uses node so callers don't use it.
         del model["uses"]

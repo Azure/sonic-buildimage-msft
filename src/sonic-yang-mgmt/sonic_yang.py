@@ -198,6 +198,21 @@ class SonicYang(SonicYangExtMixin, SonicYangPathMixin):
         return (self.ctx, self.root)
 
     """
+    load_module_str_name(): load a YANG module from a string without exposing
+                            libyang objects to callers.
+    returns: module name on success, exception on failure
+    """
+    def load_module_str_name(self, yang_module_str):
+        try:
+            module = self.ctx.parse_module_mem(yang_module_str, ly.LYS_IN_YANG)
+        except Exception as e:
+            self.sysLog(msg="Failed to load YANG module from string: {}".format(e),
+                        debug=syslog.LOG_ERR, doPrint=True)
+            raise
+
+        return module.name()
+
+    """
     print_data_mem():  print the data tree
     input:  option:  "JSON" or "XML"
     """
@@ -632,38 +647,67 @@ class SonicYang(SonicYangExtMixin, SonicYangPathMixin):
         return ref_list
 
     """
-    find_data_dependencies():   find the data dependencies from data xpath
-    input:    data_xpath - xpath of data node. (Public)
+    find_data_dependencies(): find the data dependencies from data xpath (Public)
+    input:    data_xpath - xpath of a leaf, list entry, or container.
+                           None, "" and "/" search the entire data tree.
     returns:  - list of xpath
               - Exception if error
     """
     def find_data_dependencies(self, data_xpath):
         ref_list = []
-        node = self.root
-        try:
-            data_node = self._find_data_node(data_xpath)
-        except Exception as e:
-            self.sysLog(msg="find_data_dependencies(): Failed to find data node from xpath: {}".format(data_xapth), debug=syslog.LOG_ERR, doPrint=True)
+        ref_set = set()
+        if self.root is None:
             return ref_list
 
-        try:
-            value = str(self._find_data_node_value(data_xpath))
+        if data_xpath is None or data_xpath == "" or data_xpath == "/":
+            return self._find_data_dependencies_global(ref_list, ref_set)
 
-            backlinks = self.find_schema_dependencies(data_node.schema().path(), False)
-            if backlinks is not None and len(backlinks) > 0:
-                for link in backlinks:
-                     node_set = node.find_path(link)
-                     for data_set in node_set.data():
-                          data_set.schema()
-                          casted = data_set.subtype()
-                          if value == casted.value_str():
-                              ref_list.append(data_set.path())
+        try:
+            dnode_list = list(self.root.find_path(data_xpath).data())
         except Exception as e:
-            self.sysLog(msg='Failed to find node or dependencies for {}'.format(data_xpath), debug=syslog.LOG_ERR, doPrint=True)
-            raise SonicYangException("Failed to find node or dependencies for \
-                {}\n{}".format(data_xpath, str(e)))
+            self.sysLog(msg="find_data_dependencies(): Failed to find data node from xpath: {}: {}".format(data_xpath, str(e)), debug=syslog.LOG_ERR, doPrint=True)
+            return ref_list
+
+        # Match each descendant leaf's value, not just the schema of its parent.
+        # Otherwise a query for one list entry also returns other entries' refs.
+        for dnode in dnode_list:
+            self._find_data_dependencies_node(dnode, ref_list, ref_set)
 
         return ref_list
+
+    def _find_data_dependencies_node(self, dnode, ref_list, ref_set):
+        for inner_node in dnode.tree_dfs():
+            schema = inner_node.schema()
+            if schema is None:
+                continue
+
+            if schema.nodetype() not in (ly.LYS_LEAF, ly.LYS_LEAFLIST):
+                continue
+
+            leaf = inner_node.subtype()
+            if leaf is None:
+                continue
+
+            backlinks = self.find_schema_dependencies(schema.path(), match_ancestors=False)
+            if backlinks:
+                self._resolve_backlink_data(backlinks, leaf.value_str(), ref_list, ref_set)
+
+    def _find_data_dependencies_global(self, ref_list, ref_set):
+        # libyang1 has no data node for "/"; root is the first top-level sibling.
+        for top_node in self.root.tree_for():
+            self._find_data_dependencies_node(top_node, ref_list, ref_set)
+        return ref_list
+
+    def _resolve_backlink_data(self, backlinks, required_value, ref_list, ref_set):
+        for backlink in backlinks:
+            for dnode in self.root.find_path(backlink).data():
+                leaf = dnode.subtype()
+                if leaf is None or leaf.value_str() != required_value:
+                    continue
+                path = dnode.path()
+                if path not in ref_set:
+                    ref_set.add(path)
+                    ref_list.append(path)
 
     """
     get_module_prefix:   get the prefix of a Yang module

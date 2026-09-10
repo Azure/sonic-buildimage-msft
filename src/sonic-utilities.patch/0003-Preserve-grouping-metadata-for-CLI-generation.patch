@@ -1,0 +1,89 @@
+Subject: [PATCH] Preserve grouping metadata for CLI generation
+
+sonic-yang-mgmt compiles uses clauses into yJson for config validation.
+The CLI generator needs the original uses/grouping structure to retain
+attribute groups, ordering and per-use refinements. Read the original
+schema through SonicYang.get_yang_model instead of consuming the flattened
+validation schema or depending directly on libyang.
+
+Keep the existing complete expected dictionaries, and check repeated
+parsing as well: trimming uses prefixes and applying refinements must not
+mutate schema shared with later parses.
+
+diff --git a/sonic_cli_gen/yang_parser.py b/sonic_cli_gen/yang_parser.py
+--- a/sonic_cli_gen/yang_parser.py
++++ b/sonic_cli_gen/yang_parser.py
+@@ -2,7 +2,7 @@
+
+ from collections import OrderedDict
+ from config.config_mgmt import ConfigMgmt
+-from typing import List, Dict
++from typing import List, Dict, Optional
+
+ yang_guidelines_link = 'https://github.com/Azure/SONiC/blob/master/doc/mgmt/SONiC_YANG_Model_Guidelines.md'
+
+@@ -85,7 +85,7 @@ class YangParser:
+                 Exception: if YANG model is invalid or NOT exist
+         """
+
+-        self.y_module = self._find_yang_model_in_yjson_obj()
++        self.y_module = self._get_yang_model()
+
+         if self.y_module is None:
+             raise Exception('The YANG model {} is NOT exist'.format(self.yang_model_name))
+@@ -107,14 +107,14 @@ class YangParser:
+-    def _find_yang_model_in_yjson_obj(self) -> OrderedDict:
+-        """ Find provided YANG model inside the yJson object,
+-            the yJson object contain all yang-models
+-            parsed from directory - /usr/local/yang-models
++    def _get_yang_model(self) -> Optional[OrderedDict]:
++        """ Get the original schema, before uses clauses are flattened.
++            CLI attribute groups and ordering depend on this metadata.
+
+             Returns:
+-                reference to yang_model_name
++                the module schema, or None if it is not loaded
+         """
+
+-        for yang_model in self.conf_mgmt.sy.yJson:
+-            if yang_model.get('module').get('@name') == self.yang_model_name:
+-                return yang_model.get('module')
++        yang_model = self.conf_mgmt.sy.get_yang_model(self.yang_model_name)
++        if yang_model is not None:
++            return yang_model.get('module')
++        return None
+
+     def parse_yang_model(self) -> dict:
+@@ -618,13 +618,13 @@ def get_grouping_from_another_yang_model(yang_model_name: str,
+     ret_grouping = list()
+
+-    for yang_model in conf_mgmt.sy.yJson:
+-        if (yang_model.get('module').get('@name') == yang_model_name):
+-            grouping = yang_model.get('module').get('grouping')
+-            if isinstance(grouping, list):
+-                ret_grouping.extend(grouping)
+-            else:
+-                ret_grouping.append(grouping)
++    yang_model = conf_mgmt.sy.get_yang_model(yang_model_name)
++    if yang_model is not None:
++        grouping = yang_model.get('module').get('grouping')
++        if isinstance(grouping, list):
++            ret_grouping.extend(grouping)
++        elif grouping is not None:
++            ret_grouping.append(grouping)
+
+     return ret_grouping
+
+
+diff --git a/tests/cli_autogen_yang_parser_test.py b/tests/cli_autogen_yang_parser_test.py
+--- a/tests/cli_autogen_yang_parser_test.py
++++ b/tests/cli_autogen_yang_parser_test.py
+@@ -162,6 +162,8 @@ def base_test(yang_model_name, correct_dict):
+     yang_dict = parser.parse_yang_model()
+     pretty_log_debug(yang_dict)
+     assert yang_dict == correct_dict
++    # Prefix trimming and refinements must not leak into subsequent parses.
++    assert parser.parse_yang_model() == correct_dict
+
+
+ def pretty_log_debug(dictionary):

@@ -16,50 +16,32 @@ log = logging.getLogger("YANG-TEST")
 log.setLevel(logging.INFO)
 log.addHandler(logging.NullHandler())
 
-class Test_SonicYang(object):
-    # class vars
+def _load_test_data():
+    test_file = "./tests/libyang-python-tests/test_SonicYang.json"
+    with open(test_file) as data_file:
+        return json.load(data_file)
+
+
+def _create_yang_s(data):
+    yang_dir = str(data['yang_dir'])
+    yang_files = glob.glob(yang_dir+"/*.yang")
+    yang_s = sy.SonicYang(yang_dir)
+    yang_s._load_data_model(yang_dir, yang_files, [str(data['data_file'])])
+    yang_s.validate_data_tree()
+    return yang_s
+
+
+class Test_SonicYang_Loading(object):
 
     @pytest.fixture(autouse=True, scope='class')
     def data(self):
-        test_file = "./tests/libyang-python-tests/test_SonicYang.json"
-        data = self.jsonTestParser(test_file)
-        return data
+        return _load_test_data()
 
-    @pytest.fixture(autouse=True, scope='class')
+    @pytest.fixture(autouse=True)
     def yang_s(self, data):
         yang_dir = str(data['yang_dir'])
         yang_s = sy.SonicYang(yang_dir)
         return yang_s
-
-    def jsonTestParser(self, file):
-        """
-        Open the json test file
-        """
-        with open(file) as data_file:
-            data = json.load(data_file)
-        return data
-
-    """
-        Get the JSON input based on func name
-        and return jsonInput
-    """
-    def readIjsonInput(self, yang_test_file, test):
-        try:
-            # load test specific Dictionary, using Key = func
-            # this is to avoid loading very large JSON in memory
-            print(" Read JSON Section: " + test)
-            jInput = ""
-            with open(yang_test_file, 'rb') as f:
-                jInst = ijson_itmes(f, test)
-                for it in jInst:
-                    jInput = jInput + json.dumps(it)
-        except Exception as e:
-            print("Reading Ijson failed")
-            raise(e)
-        return jInput
-
-    def setup_class(self):
-        pass
 
     def load_yang_model_file(self, yang_s, yang_dir, yang_file, module_name):
         yfile = yang_dir + yang_file
@@ -87,6 +69,17 @@ class Test_SonicYang(object):
 
         with pytest.raises(Exception):
              assert self.load_yang_model_file(yang_s, yang_dir, file, module)
+
+    def test_load_module_str_name(self, data, yang_s):
+        with open(os.path.join(data['yang_dir'], 'test-acl.yang')) as f:
+            content = f.read()
+        assert yang_s.load_module_str_name(content) == "test-acl"
+        assert yang_s._get_module("test-acl") is not None
+
+    @pytest.mark.parametrize("content", ["", "not a YANG module"])
+    def test_load_module_str_name_invalid(self, yang_s, content):
+        with pytest.raises(RuntimeError):
+            yang_s.load_module_str_name(content)
 
     #test load yang modules in directory
     def test_load_yang_model_dir(self, data, yang_s):
@@ -119,7 +112,38 @@ class Test_SonicYang(object):
     #test load data file
     def test_load_data_file(self, data, yang_s):
         data_file = str(data['data_file'])
+        yang_s._load_schema_modules(str(data['yang_dir']))
         yang_s._load_data_file(data_file)
+
+
+class Test_SonicYang(object):
+    # Mutating tests must not change the data seen by dependency lookups.
+    @pytest.fixture(autouse=True, scope='class')
+    def data(self):
+        return _load_test_data()
+
+    @pytest.fixture(autouse=True)
+    def yang_s(self, data):
+        return _create_yang_s(data)
+
+    """
+        Get the JSON input based on func name
+        and return jsonInput
+    """
+    def readIjsonInput(self, yang_test_file, test):
+        try:
+            # load test specific Dictionary, using Key = func
+            # this is to avoid loading very large JSON in memory
+            print(" Read JSON Section: " + test)
+            jInput = ""
+            with open(yang_test_file, 'rb') as f:
+                jInst = ijson_itmes(f, test)
+                for it in jInst:
+                    jInput = jInput + json.dumps(it)
+        except Exception as e:
+            print("Reading Ijson failed")
+            raise(e)
+        return jInput
 
     #test_validate_data_tree():
     def test_validate_data_tree(self, data, yang_s):
@@ -205,6 +229,37 @@ class Test_SonicYang(object):
             list = node['dependencies']
             depend = yang_s.find_data_dependencies(xpath)
             assert set(depend) == set(list)
+            assert len(depend) == len(set(depend))
+
+    @pytest.mark.parametrize("xpath", [None, "", "/"])
+    def test_find_data_dependencies_global(self, yang_s, data, xpath):
+        expected = next(node['dependencies'] for node in data['dependencies']
+                        if node['xpath'] == "/")
+        dependencies = yang_s.find_data_dependencies(xpath)
+        assert set(dependencies) == set(expected)
+        assert len(dependencies) == len(set(dependencies))
+
+    @pytest.mark.parametrize("xpath", [
+        "/test-acl:test-acl/ACL_TABLE/ACL_TABLE_LIST",
+        "/test-acl:test-acl/ACL_TABLE/ACL_TABLE_LIST/ACL_TABLE_NAME",
+    ])
+    def test_find_data_dependencies_multiple_matches(self, yang_s, data, xpath):
+        expected = next(node['dependencies'] for node in data['dependencies']
+                        if node['xpath'] == "/test-acl:test-acl/ACL_TABLE")
+        assert set(yang_s.find_data_dependencies(xpath)) == set(expected)
+
+    @pytest.mark.parametrize("xpath", [
+        "/test-port:test-port/PORT/PORT_LIST[port_name='Ethernet9999']",
+        "/test-port:test-port/PORT/invalid",
+        "invalid[",
+    ])
+    def test_find_data_dependencies_missing_node(self, yang_s, xpath):
+        assert yang_s.find_data_dependencies(xpath) == []
+
+    @pytest.mark.parametrize("xpath", [None, "", "/", "/test-port:test-port/PORT"])
+    def test_find_data_dependencies_empty_tree(self, data, xpath):
+        yang_s = sy.SonicYang(str(data['yang_dir']))
+        assert yang_s.find_data_dependencies(xpath) == []
 
     #test data dependencies
     def test_find_schema_dependencies(self, yang_s, data):
@@ -239,6 +294,8 @@ class Test_SonicYang(object):
             assert expected_type == data_type
 
     def test_get_leafref_type(self, yang_s, data):
+        # libyang1 resolves the leafref value_type when merging data.
+        yang_s._merge_data(data['data_merge_file'], str(data['yang_dir']))
         for node in data['leafref_type']:
             xpath = str(node['xpath'])
             expected = node['data_type']
@@ -316,7 +373,7 @@ class Test_SonicYang(object):
     on Real SONiC Yang models. Mainly tests  for translation and reverse
     translation.
     """
-    @pytest.fixture(autouse=True, scope='class')
+    @pytest.fixture(autouse=True)
     def sonic_yang_data(self):
         sonic_yang_dir = "/usr/local/yang-models/"
         sonic_yang_test_file = "../sonic-yang-models/tests/files/sample_config_db.json"
@@ -513,3 +570,69 @@ class Test_SonicYang(object):
 
     def teardown_class(self):
         pass
+
+
+class Test_SonicYang_UsesCompilation(object):
+    @pytest.fixture
+    def yang_s(self):
+        yang_s = sy.SonicYang(str(_load_test_data()['yang_dir']))
+        yang_s.loadYangModel()
+        return yang_s
+
+    @pytest.fixture
+    def module(self, yang_s):
+        return next(model['module'] for model in yang_s.yJson
+                    if model['module']['@name'] == 'test-grouping')
+
+    def _list_node(self, module):
+        return module['container']['container']['list']
+
+    @pytest.mark.parametrize("grouping, node_type", [
+        ("group-with-container", "container"),
+        ("group-with-list", "list"),
+        ("nested-uses-group", "uses"),
+    ])
+    def test_grouping_preprocessing(self, yang_s, grouping, node_type):
+        group = yang_s.preProcessedYang['grouping']['test-grouping'][grouping]
+        assert node_type in group
+
+    @pytest.mark.parametrize("node_type, name", [
+        ("container", "settings"),
+        ("list", "member"),
+    ])
+    def test_uses_clause_merges_children(self, module, node_type, name):
+        children = self._list_node(module)[node_type]
+        assert [child['@name'] for child in children] == [name]
+
+    def test_uses_clause_merges_nested_uses(self, module):
+        leaves = self._list_node(module)['leaf']
+        assert {leaf['@name'] for leaf in leaves} == {
+            'name', 'description', 'extra'
+        }
+
+    def test_uses_clause_removes_uses_key(self, module):
+        assert 'uses' not in self._list_node(module)
+
+    def test_uses_clause_in_notification(self, module):
+        notification = module['notification']
+        assert 'uses' not in notification
+        assert {leaf['@name'] for leaf in notification['leaf']} == {
+            'description', 'event-data'
+        }
+
+    def test_get_yang_model_preserves_uses(self, yang_s, module):
+        raw = yang_s.get_yang_model('test-grouping')['module']
+        assert [uses['@name'] for uses in self._list_node(raw)['uses']] == [
+            'group-with-container', 'group-with-list', 'nested-uses-group'
+        ]
+        assert 'uses' not in self._list_node(module)
+
+    def test_get_yang_model_returns_fresh_schema(self, yang_s, module):
+        raw = yang_s.get_yang_model('test-grouping')['module']
+        self._list_node(raw)['leaf']['@name'] = 'changed'
+        fresh = yang_s.get_yang_model('test-grouping')['module']
+        assert self._list_node(fresh)['leaf']['@name'] == 'name'
+        assert self._list_node(module)['leaf'][0]['@name'] == 'name'
+
+    def test_get_yang_model_missing(self, yang_s):
+        assert yang_s.get_yang_model('not-a-loaded-module') is None
