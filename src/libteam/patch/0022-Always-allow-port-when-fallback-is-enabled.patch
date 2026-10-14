@@ -1,0 +1,38 @@
+Always allow a port for traffic when fallback is enabled
+
+From: Saikrishna Arcot <sarcot@microsoft.com>
+
+When static fallback is enabled on a port, if the port is in current
+state, then always allow traffic on that port even if the synchronized
+bit is not set. This breaks the protocol a bit, but does avoid the
+traffic downtime when a port is switching from fallback to non-fallback
+mode.
+---
+ teamd/teamd_runner_lacp.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/teamd/teamd_runner_lacp.c b/teamd/teamd_runner_lacp.c
+index 26f306b..e009a5d 100644
+--- a/teamd/teamd_runner_lacp.c
++++ b/teamd/teamd_runner_lacp.c
+@@ -678,6 +678,10 @@ static int lacp_port_should_be_enabled(struct lacp_port *lacp_port)
+ 	    (lacp_port->partner.state & INFO_STATE_SYNCHRONIZATION ||
+ 	    lacp_port->state == PORT_STATE_FALLBACK))
+ 		return true;
++
++	if (lacp->cfg.fallback && lacp_port_selectable_state(lacp_port))
++		return true;
++
+ 	return false;
+ }
+ 
+@@ -685,6 +689,9 @@ static int lacp_port_should_be_disabled(struct lacp_port *lacp_port)
+ {
+ 	struct lacp *lacp = lacp_port->lacp;
+ 
++	if (lacp->cfg.fallback && lacp_port_selectable_state(lacp_port))
++		return true;
++
+ 	if (!lacp_port_selected(lacp_port) ||
+ 	    lacp_port->agg_lead != lacp->selected_agg_lead ||
+ 	    (!(lacp_port->partner.state & INFO_STATE_SYNCHRONIZATION) &&
