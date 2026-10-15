@@ -36,7 +36,6 @@ typedef struct spi_ocores_device_s {
     uint32_t clock_frequency;
     uint32_t num_chipselect;
     uint32_t irq_flag;
-    uint32_t spioc_mode;
     int device_flag;
 } spi_ocores_device_t;
 

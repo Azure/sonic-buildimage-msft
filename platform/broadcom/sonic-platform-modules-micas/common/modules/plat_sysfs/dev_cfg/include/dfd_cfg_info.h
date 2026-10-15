@@ -118,8 +118,7 @@ typedef enum sensor_format_mem_s {
     TMP464,
     MAC_TH5,
     MAC_TD3,
-    MAC_TH4,
-    MAC_TH6
+    MAC_TH4
 } sensor_format_mem_t;
 
 typedef int (*info_hwmon_buf_f)(uint8_t *buf, int buf_len, uint8_t *buf_new, int *buf_len_new, info_ctrl_t *info_ctrl);

@@ -1,1 +1,0 @@
-SAI_INIT_CONFIG_FILE=/usr/share/sonic/hwsku/th6-m2-w6951-64hc-cp-64x1600G.config.yml

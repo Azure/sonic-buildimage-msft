@@ -299,18 +299,13 @@ class sensor_s3ip(sensor):
         self.max_path = "%s/%s/%s" % (self.s3ip_conf.get("path"), self.s3ip_conf.get("sensor_dir"), "max")
         self.alias = "%s/%s/%s" % (self.s3ip_conf.get("path"), self.s3ip_conf.get("sensor_dir"), "alias")
         self.sensor_id = self.s3ip_conf.get("type").upper()
-        self.vol_num_path = "/sys/s3ip/vol_sensor/number"
-        self.Unit = self.s3ip_conf.get("Unit")
 
     @property
     def Min(self):
         try:
             ret, val = self.get_sysfs(self.min_path)
             if ret is True:
-                self.__Min = val
-                if self.format is not None:
-                    self.__Min = self.get_format_value(self.format % self.__Min)
-                return self.__Min
+                return val
         except Exception:
             pass
         return None
@@ -327,10 +322,7 @@ class sensor_s3ip(sensor):
         try:
             ret, val = self.get_sysfs(self.max_path)
             if ret is True:
-                self.__Max = val
-                if self.format is not None:
-                    self.__Max = self.get_format_value(self.format % self.__Max)
-                return self.__Max
+                return val
         except Exception:
             pass
         return None
@@ -351,13 +343,4 @@ class sensor_s3ip(sensor):
         except Exception:
             pass
         return None
-        
-    @property
-    def vol_num(self):
-        try:
-            ret, val = self.get_sysfs(self.vol_num_path)
-            if ret is True:
-                return val
-        except Exception:
-            pass
-        return None
+
