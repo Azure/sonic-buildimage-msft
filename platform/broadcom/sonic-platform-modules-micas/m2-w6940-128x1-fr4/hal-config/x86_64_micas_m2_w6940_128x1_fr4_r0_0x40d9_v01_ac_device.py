@@ -465,7 +465,7 @@ devices = {
                 "flash": 0x01, "amber_flash": 0x05,
             },
             "led_map": {
-                0x00: "off", 0x02: "blue", 0x06: "amber", 0x01: "blue/amber alternate flashing",
+                0x00: "off", 0x02: "green", 0x06: "amber", 0x01: "green/amber alternate flashing",
                 0x05: "amber flashing"
             }
         },
@@ -477,7 +477,7 @@ devices = {
                 "off": 0x00, "green": 0x02, "amber": 0x06, "red": 0x06, "mask": 0x07
             },
             "led_map": {
-                0x00: "off", 0x02: "blue", 0x06: "amber"
+                0x00: "off", 0x02: "green", 0x06: "amber"
             }
         },
         {
@@ -489,7 +489,7 @@ devices = {
                 "off": 0x00, "green": 0x02, "amber": 0x06, "red": 0x06, "mask": 0x07
             },
             "led_map": {
-                0x00: "off", 0x02: "blue", 0x06: "amber"
+                0x00: "off", 0x02: "green", 0x06: "amber"
             }
         },
         {
@@ -500,7 +500,7 @@ devices = {
                 "off": 0x00, "green": 0x02, "amber": 0x06, "red": 0x06, "mask": 0x07
             },
             "led_map": {
-                0x00: "off", 0x02: "blue", 0x06: "amber"
+                0x00: "off", 0x02: "green", 0x06: "amber"
             }
         },
         {
@@ -512,7 +512,7 @@ devices = {
                 "amber_flash": 0x05,
             },
             "led_map": {
-                0x00: "off", 0x02: "blue", 0x06: "amber", 0x05: "amber flashing"
+                0x00: "off", 0x02: "green", 0x06: "amber", 0x05: "amber flashing"
             }
         },
         {
@@ -520,11 +520,11 @@ devices = {
             "led_type": "SMB_LED",
             "led": {"loc": "/dev/fpga1", "offset": 0x2c, "len": 1, "way": "devfile"},
             "led_attrs": {
-                "off": 0x07, "green": 0x03, "amber": 0x04, "red": 0x04, "mask": 0xf,
+                "off": 0x07, "green": 0x05, "amber": 0x04, "red": 0x04, "mask": 0xf,
                 "amber_flash": 0x0c,
             },
             "led_map": {
-                0x07: "off", 0x03: "blue", 0x04: "amber", 0x0c: "amber flashing"
+                0x07: "off", 0x05: "green", 0x04: "amber", 0x0c: "amber flashing"
             }
         },
     ],
@@ -539,10 +539,10 @@ devices = {
             "SpeedMax": threshold.FRONT_FAN_SPEED_MAX,
             "led": {"bus": 44, "addr": 0x0d, "offset": 0x60, "way": "i2c"},
             "led_attrs": {
-                "off": 0x00, "green": 0x06, "amber": 0x01, "red": 0x01, "mask": 0x07
+                "off": 0x00, "green": 0x03, "amber": 0x01, "red": 0x01, "mask": 0x07
             },
             "led_map": {
-                0x00: "off", 0x06: "blue", 0x01: "amber"
+                0x00: "off", 0x03: "green", 0x01: "amber"
             },
             "PowerMax": 80.64,
             "Rotor": {
@@ -586,10 +586,10 @@ devices = {
             "SpeedMax": threshold.FRONT_FAN_SPEED_MAX,
             "led": {"bus": 44, "addr": 0x0d, "offset": 0x61, "way": "i2c"},
             "led_attrs": {
-                "off": 0x00, "green": 0x06, "amber": 0x01, "red": 0x01, "mask": 0x07
+                "off": 0x00, "green": 0x03, "amber": 0x01, "red": 0x01, "mask": 0x07
             },
             "led_map": {
-                0x00: "off", 0x06: "blue", 0x01: "amber"
+                0x00: "off", 0x03: "green", 0x01: "amber"
             },
             "PowerMax": 80.64,
             "Rotor": {
@@ -633,10 +633,10 @@ devices = {
             "SpeedMax": threshold.FRONT_FAN_SPEED_MAX,
             "led": {"bus": 44, "addr": 0x0d, "offset": 0x62, "way": "i2c"},
             "led_attrs": {
-                "off": 0x00, "green": 0x06, "amber": 0x01, "red": 0x01, "mask": 0x07
+                "off": 0x00, "green": 0x03, "amber": 0x01, "red": 0x01, "mask": 0x07
             },
             "led_map": {
-                0x00: "off", 0x06: "blue", 0x01: "amber"
+                0x00: "off", 0x03: "green", 0x01: "amber"
             },
             "PowerMax": 80.64,
             "Rotor": {
@@ -680,10 +680,10 @@ devices = {
             "SpeedMax": threshold.FRONT_FAN_SPEED_MAX,
             "led": {"bus": 44, "addr": 0x0d, "offset": 0x63, "way": "i2c"},
             "led_attrs": {
-                "off": 0x00, "green": 0x06, "amber": 0x01, "red": 0x01, "mask": 0x07
+                "off": 0x00, "green": 0x03, "amber": 0x01, "red": 0x01, "mask": 0x07
             },
             "led_map": {
-                0x00: "off", 0x06: "blue", 0x01: "amber"
+                0x00: "off", 0x03: "green", 0x01: "amber"
             },
             "PowerMax": 80.64,
             "Rotor": {
@@ -727,10 +727,10 @@ devices = {
             "SpeedMax": threshold.FRONT_FAN_SPEED_MAX,
             "led": {"bus": 52, "addr": 0x0d, "offset": 0x60, "way": "i2c"},
             "led_attrs": {
-                "off": 0x00, "green": 0x06, "amber": 0x01, "red": 0x01, "mask": 0x07
+                "off": 0x00, "green": 0x03, "amber": 0x01, "red": 0x01, "mask": 0x07
             },
             "led_map": {
-                0x00: "off", 0x06: "blue", 0x01: "amber"
+                0x00: "off", 0x03: "green", 0x01: "amber"
             },
             "PowerMax": 80.64,
             "Rotor": {
@@ -774,10 +774,10 @@ devices = {
             "SpeedMax": threshold.FRONT_FAN_SPEED_MAX,
             "led": {"bus": 52, "addr": 0x0d, "offset": 0x61, "way": "i2c"},
             "led_attrs": {
-                "off": 0x00, "green": 0x06, "amber": 0x01, "red": 0x01, "mask": 0x07
+                "off": 0x00, "green": 0x03, "amber": 0x01, "red": 0x01, "mask": 0x07
             },
             "led_map": {
-                0x00: "off", 0x06: "blue", 0x01: "amber"
+                0x00: "off", 0x03: "green", 0x01: "amber"
             },
             "PowerMax": 80.64,
             "Rotor": {
@@ -821,10 +821,10 @@ devices = {
             "SpeedMax": threshold.FRONT_FAN_SPEED_MAX,
             "led": {"bus": 52, "addr": 0x0d, "offset": 0x62, "way": "i2c"},
             "led_attrs": {
-                "off": 0x00, "green": 0x06, "amber": 0x01, "red": 0x01, "mask": 0x07
+                "off": 0x00, "green": 0x03, "amber": 0x01, "red": 0x01, "mask": 0x07
             },
             "led_map": {
-                0x00: "off", 0x06: "blue", 0x01: "amber"
+                0x00: "off", 0x03: "green", 0x01: "amber"
             },
             "PowerMax": 80.64,
             "Rotor": {
@@ -868,10 +868,10 @@ devices = {
             "SpeedMax": threshold.FRONT_FAN_SPEED_MAX,
             "led": {"bus": 52, "addr": 0x0d, "offset": 0x63, "way": "i2c"},
             "led_attrs": {
-                "off": 0x00, "green": 0x06, "amber": 0x01, "red": 0x01, "mask": 0x07
+                "off": 0x00, "green": 0x03, "amber": 0x01, "red": 0x01, "mask": 0x07
             },
             "led_map": {
-                0x00: "off", 0x06: "blue", 0x01: "amber"
+                0x00: "off", 0x03: "green", 0x01: "amber"
             },
             "PowerMax": 80.64,
             "Rotor": {
