@@ -341,6 +341,23 @@ environment=ASAN_OPTIONS="log_path=/var/log/asan/fdbsyncd-asan.log{{ asan_extra_
 {% endif %}
 {%- endif %}
 
+{% if is_fabric_asic == 0 %}
+[program:vnetmgrd]
+command=/usr/bin/vnetmgrd
+priority=17
+autostart=false
+autorestart=false
+stdout_logfile=NONE
+stdout_syslog=true
+stderr_logfile=NONE
+stderr_syslog=true
+dependent_startup=true
+dependent_startup_wait_for=swssconfig:exited
+{% if ENABLE_ASAN == "y" %}
+environment=ASAN_OPTIONS="log_path=/var/log/asan/vnetmgrd-asan.log{{ asan_extra_options }}"
+{% endif %}
+{%- endif %}
+
 [program:countersyncd]
 command=/usr/bin/countersyncd --enable-otel
 priority=18
