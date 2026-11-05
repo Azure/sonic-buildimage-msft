@@ -4,11 +4,15 @@ INSTALL := /usr/bin/install
 
 all: gobgp gobgpd
 
-gobgpd:
-	/usr/local/go/bin/go get -v github.com/osrg/gobgp/cmd/gobgpd
+gobgp_prepare:
+	git clone https://github.com/osrg/gobgp.git
+	cd gobgp && /usr/local/go/bin/go mod download
 
-gobgp:
-	/usr/local/go/bin/go get -v github.com/osrg/gobgp/cmd/gobgp
+gobgpd: gobgp_prepare
+	cd gobgp && /usr/local/go/bin/go install ./cmd/gobgpd
+
+gobgp: gobgp_prepare
+	cd gobgp && /usr/local/go/bin/go install ./cmd/gobgp
 
 install:
 	$(INSTALL) -D ${GOPATH}/bin/gobgp $(DESTDIR)/usr/bin/gobgp
@@ -21,3 +25,4 @@ deinstall:
 
 clean:
 	rm -fr ${GOPATH}
+	rm -fr gobgp
