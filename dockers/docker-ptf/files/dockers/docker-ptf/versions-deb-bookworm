@@ -389,9 +389,9 @@ libre2-dev==20220601+dfsg-1+b1
 libreadline8==8.2-1.3
 librhash0==1.4.3-3
 librtmp1==2.4+20151223.gitfa8646d.1-2+b2
-libsasl2-2==2.1.28+dfsg-10
-libsasl2-modules==2.1.28+dfsg-10
-libsasl2-modules-db==2.1.28+dfsg-10
+libsasl2-2==2.1.28+dfsg-10+deb12u1
+libsasl2-modules==2.1.28+dfsg-10+deb12u1
+libsasl2-modules-db==2.1.28+dfsg-10+deb12u1
 libselinux1-dev==3.4-1+b6
 libsepol-dev==3.4-2.1
 libsodium23==1.0.18-1+deb12u1
@@ -399,8 +399,8 @@ libsource-highlight-common==3.1.9-4.2
 libsource-highlight4v5==3.1.9-4.2+b3
 libsqlite3-0==3.40.1-2+deb12u2
 libssh2-1==1.10.0-3+deb12u1
-libssl-dev==3.0.22-1~deb12u1
-libssl3==3.0.22-1~deb12u1
+libssl-dev==3.0.22-1~deb12u2
+libssl3==3.0.22-1~deb12u2
 libstdc++-12-dev==12.2.0-14+deb12u1
 libsvtav1enc1==1.4.1+dfsg-1
 libsystemd-shared==252.39-1~deb12u2
@@ -484,7 +484,7 @@ openmpi-common==4.1.4-3
 openssh-client==1:9.2p1-2+deb12u10
 openssh-server==1:9.2p1-2+deb12u10
 openssh-sftp-server==1:9.2p1-2+deb12u10
-openssl==3.0.22-1~deb12u1
+openssl==3.0.22-1~deb12u2
 p4lang-bmv2==1.15.0-9
 p4lang-p4c==1.2.4.2-3
 p4lang-pi==0.1.3-2
@@ -597,7 +597,7 @@ thrift-compiler==0.17.0-2+b2
 tk8.6-blt2.5==2.5.3+dfsg-4.1
 tmux==3.3a-3
 traceroute==1:2.1.2-1
-tzdata==2026e-0+deb12u1
+tzdata==2026f-0+deb12u1
 ucf==3.0043+nmu1+deb12u1
 unicode-data==15.0.0-1
 unzip==6.0-28+deb12u1
