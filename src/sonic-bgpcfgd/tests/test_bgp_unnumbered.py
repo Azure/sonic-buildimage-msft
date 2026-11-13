@@ -5,6 +5,7 @@ Tests template rendering and is_interface_neighbor detection logic.
 import os
 import sys
 import json
+import pytest
 from unittest.mock import MagicMock
 
 # Mock SONiC-specific modules for standalone testing
@@ -218,3 +219,55 @@ def test_unnumbered_shutdown():
     """Interface neighbor renders shutdown when admin_status is down."""
     result = render_general_instance('PortChannel101', {'asn': '65200', 'name': 'spine1', 'admin_status': 'down'})
     assert 'neighbor PortChannel101 shutdown' in result
+
+
+@pytest.mark.parametrize('template_name,peer_group', [
+    ('general', 'PEER_UNNUMBERED'),
+    ('internal', 'INTERNAL_PEER_UNNUMBERED'),
+    ('voq_chassis', 'VOQ_CHASSIS_PEER_UNNUMBERED'),
+])
+@pytest.mark.parametrize('address_family', [None, 'v4', 'v6', 'both'])
+@pytest.mark.parametrize('neighbor,interface_flag', [
+    ('PortChannel101', None),
+    ('EthernetFuture0', True),
+])
+def test_unnumbered_interface_created_before_peer_attributes(
+        template_name, peer_group, address_family, neighbor, interface_flag):
+    session = {'asn': '65200', 'name': 'peer1', 'admin_status': 'down'}
+    if address_family is not None:
+        session['address_family'] = address_family
+    params = {
+        'CONFIG_DB__DEVICE_METADATA': {'localhost': {
+            'type': 'LeafRouter', 'sub_role': 'FrontEnd', 'switch_type': 'chassis-packet',
+        }},
+        'neighbor_addr': neighbor,
+        'bgp_session': session,
+        'bgp_asn': '65100',
+        'constants': {'bgp': {'maximum_paths': {
+            'enabled': True, 'ipv4': 64, 'ipv6': 64,
+        }}},
+    }
+    if interface_flag is not None:
+        params['is_interface_neighbor'] = interface_flag
+    template = TemplateFabric(TEMPLATE_PATH).from_file(
+        'bgpd/templates/%s/instance.conf.j2' % template_name
+    )
+    result = template.render(**params)
+    commands = [line.strip() for line in result.splitlines()
+                if line.strip() and not line.strip().startswith('!')]
+    neighbor_commands = [line for line in commands if line.startswith('neighbor %s ' % neighbor)]
+    create = 'neighbor %s interface' % neighbor
+    remote_as = 'neighbor %s remote-as 65200' % neighbor
+    binding = 'neighbor %s interface peer-group %s' % (neighbor, peer_group)
+    assert neighbor_commands[:2] == [create, remote_as]
+    assert neighbor_commands.count(create) == 1
+    assert neighbor_commands.count(remote_as) == 1
+    assert neighbor_commands.count(binding) == 1
+    assert neighbor_commands.index(binding) > neighbor_commands.index(remote_as)
+    assert 'neighbor %s description peer1' % neighbor in neighbor_commands
+    for family, value in [('ipv4', 'v4'), ('ipv6', 'v6')]:
+        activated = any(
+            ('neighbor %s activate' % neighbor) in block.split('exit-address-family')[0]
+            for block in result.split('address-family %s' % family)[1:]
+        )
+        assert activated == (address_family in (None, 'both', value))

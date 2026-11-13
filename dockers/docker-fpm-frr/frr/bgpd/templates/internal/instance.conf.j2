@@ -1,6 +1,9 @@
 !
 ! template: bgpd/templates/internal/instance.conf.j2
 !
+{% if is_interface_neighbor | default(neighbor_addr | is_interface) %}
+  neighbor {{ neighbor_addr }} interface
+{% endif %}
   neighbor {{ neighbor_addr }} remote-as {{ bgp_session['asn'] }}
   neighbor {{ neighbor_addr }} description {{ bgp_session['name'] }}
   neighbor {{ neighbor_addr }} timers 3 10
