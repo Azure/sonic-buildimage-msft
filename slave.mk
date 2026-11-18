@@ -206,6 +206,24 @@ ifeq ($(SONIC_INSTALL_DEBUG_TOOLS),y)
 INSTALL_DEBUG_TOOLS = y
 endif
 
+# SPLIT_DBGSYM: whether a separate dbgsym package is produced.
+# Default y (production): runtime .deb is stripped, symbols go into the dbgsym.
+# SONIC_DEBUGGING_ON / SONIC_PROFILING_ON export DEB_BUILD_OPTIONS=nostrip
+# (profiling also adds noopt). DWARF then stays in the runtime .deb, no dbgsym
+# is emitted, and SPLIT_DBGSYM is n so package rules do not register one.
+# If both flags are set, the profiling assignment wins (nostrip noopt).
+# Unrelated to INSTALL_DEBUG_TOOLS, which only decides whether debug images
+# ship in the installer; debug images can be built either way.
+SPLIT_DBGSYM = y
+ifeq ($(SONIC_DEBUGGING_ON),y)
+DEB_BUILD_OPTIONS_GENERIC := nostrip
+SPLIT_DBGSYM = n
+endif
+ifeq ($(SONIC_PROFILING_ON),y)
+DEB_BUILD_OPTIONS_GENERIC := nostrip noopt
+SPLIT_DBGSYM = n
+endif
+
 ifeq ($(SONIC_SAITHRIFT_V2),y)
 SAITHRIFT_V2 = y
 SAITHRIFT_VER = v2
@@ -309,14 +327,6 @@ ifeq ($(PASSWORD),)
 override PASSWORD := $(DEFAULT_PASSWORD)
 else
 $(warning PASSWORD given on command line: could be visible to other users)
-endif
-
-ifeq ($(SONIC_DEBUGGING_ON),y)
-DEB_BUILD_OPTIONS_GENERIC := nostrip
-endif
-
-ifeq ($(SONIC_PROFILING_ON),y)
-DEB_BUILD_OPTIONS_GENERIC := nostrip noopt
 endif
 
 # ccache configuration — prepend /usr/lib/ccache to PATH so that gcc/g++/cc/c++
@@ -1492,7 +1502,7 @@ $(DOCKER_LOAD_TARGETS) : $(TARGET_PATH)/%.gz-load : .platform docker-start $$(TA
 $(addprefix $(TARGET_PATH)/, $(SONIC_RFS_TARGETS)) : $(TARGET_PATH)/% : \
         .platform \
         build_debian.sh \
-        $(addprefix $(IMAGE_DISTRO_DEBS_PATH)/,$(INITRAMFS_TOOLS) $(LINUX_KERNEL) $(GRUB2_COMMON)) \
+        $(addprefix $(IMAGE_DISTRO_DEBS_PATH)/,$(INITRAMFS_TOOLS) $(LINUX_KERNEL)) \
         $$(addprefix $(TARGET_PATH)/,$$($$*_DEPENDENT_RFS)) \
         $(call dpkg_depend,$(TARGET_PATH)/%.dep)
 	$(HEADER)
@@ -1549,6 +1559,8 @@ $(addprefix $(TARGET_PATH)/, $(SONIC_INSTALLERS)) : $(TARGET_PATH)/% : \
         .platform \
         onie-image.conf \
         build_debian.sh \
+        files/build_templates/sonic_debian_extension.j2 \
+        files/build_templates/docker_image_ctl.j2 \
         scripts/dbg_files.sh \
         scripts/build_sbom.sh \
         scripts/install_sbom_tool.sh \
@@ -1585,8 +1597,7 @@ $(addprefix $(TARGET_PATH)/, $(SONIC_INSTALLERS)) : $(TARGET_PATH)/% : \
                 $(BASH_TACPLUS) \
                 $(AUDISP_TACPLUS) \
                 $(SYSLOG_COUNTER) \
-                $(SEDUTIL) \
-                $(GRUB2_COMMON)) \
+                $(SEDUTIL)) \
         $$(addprefix $(TARGET_PATH)/,$$($$*_DOCKERS)) \
         $$(addprefix $(TARGET_PATH)/,$$(SONIC_PACKAGES_LOCAL)) \
         $$(addprefix $(FILES_PATH)/,$$($$*_FILES)) \

@@ -164,6 +164,9 @@ sudo setcap 'cap_net_raw=+ep' $FILESYSTEM_ROOT/usr/bin/wol
 sudo bash -c "echo \"d	/dev/shm/monit/ 0755 root root\" > $FILESYSTEM_ROOT/etc/tmpfiles.d/tmpfs-monit.conf"
 sudo bash -c "echo \"d	/dev/shm/logrotate/ 0755 root root\" > $FILESYSTEM_ROOT/etc/tmpfiles.d/tmpfs-logrotate.conf"
 
+# stop auto delete of tmp files every periodic cycle
+sudo bash -c "echo \"q	/tmp 1777 root root -\" > $FILESYSTEM_ROOT/etc/tmpfiles.d/tmp.conf"
+sudo bash -c "echo \"q	/var/tmp 1777 root root -\" >> $FILESYSTEM_ROOT/etc/tmpfiles.d/tmp.conf"
 
 # Install a patched version of ifupdown2  (and its dependencies via 'apt-get -y install -f')
 install_deb_package $debs_path/ifupdown2_*.deb
@@ -194,8 +197,8 @@ sudo https_proxy=$https_proxy LANG=C chroot $FILESYSTEM_ROOT pip3 install ipaddr
 
 # Install Python module for grpcio and grpcio-tools
 if [[ $CONFIGURED_ARCH == amd64 || $CONFIGURED_ARCH == arm64 ]]; then
-    sudo https_proxy=$https_proxy LANG=C chroot $FILESYSTEM_ROOT pip3 install "grpcio==1.66.2"
-    sudo https_proxy=$https_proxy LANG=C chroot $FILESYSTEM_ROOT pip3 install "grpcio-tools==1.66.2"
+    sudo https_proxy=$https_proxy LANG=C chroot $FILESYSTEM_ROOT pip3 install "grpcio==1.71.0"
+    sudo https_proxy=$https_proxy LANG=C chroot $FILESYSTEM_ROOT pip3 install "grpcio-tools==1.71.0" "protobuf==5.29.6"
 fi
 
 # Install Python module for smbus2
@@ -313,6 +316,11 @@ fi
 {% for wheel in installer_python_wheels.strip().split(' ') -%}
 install_pip_package {{wheel}}
 {% endfor %}
+{% if CONFIGURED_ARCH != "armhf" and not CONFIGURED_ARCH.startswith(("armv6", "armv7", "armv8l")) %}
+if [[ $IMAGE_DISTRO == bullseye || $IMAGE_DISTRO == bookworm || $IMAGE_DISTRO == trixie ]]; then
+sudo chroot $FILESYSTEM_ROOT python3 -B -c "from sonic_grpc.gnoi import GnoiClient, file_pb2, file_pb2_grpc, system_pb2"
+fi
+{% endif %}
 
 # Install SONiC Device Data  (and its dependencies via 'apt-get -y install -f')
 install_deb_package $debs_path/sonic-device-data_*.deb
@@ -436,6 +444,13 @@ install_deb_package $debs_path/openssh-server_${OPENSSH_VERSION_FULL}_*.deb $deb
 install_deb_package $debs_path/flashrom_*.deb
 {% endif %}
 
+{% if sonic_asic_platform == "aspeed" %}
+# libgpiod tools (gpioset/gpioget/gpioinfo), required by GPIO init scripts in
+# aspeed platform packages. Trixie ships libgpiod v2, where lines are
+# addressed by name and gpiofind no longer exists.
+sudo LANG=C DEBIAN_FRONTEND=noninteractive chroot $FILESYSTEM_ROOT apt-get -y install gpiod
+{% endif %}
+
 # Copy crontabs
 sudo cp -f $IMAGE_CONFIGS/cron.d/* $FILESYSTEM_ROOT/etc/cron.d/
 
@@ -554,6 +569,10 @@ sudo mkdir -p $FILESYSTEM_ROOT/etc/network/interfaces.d
 sudo cp $IMAGE_CONFIGS/systemd/network/* $FILESYSTEM_ROOT_ETC/systemd/network/
 sudo mkdir -p $FILESYSTEM_ROOT_ETC/udev/rules.d
 sudo cp $IMAGE_CONFIGS/udev/rules.d/* $FILESYSTEM_ROOT_ETC/udev/rules.d/
+
+# Install the pmon /dev hot-plug bridge.
+sudo LANG=C cp $IMAGE_CONFIGS/pmon/pmon-dev-bridge.sh $FILESYSTEM_ROOT/usr/local/bin/pmon-dev-bridge.sh
+sudo chmod 755 $FILESYSTEM_ROOT/usr/local/bin/pmon-dev-bridge.sh
 
 # copy core file uploader files
 sudo cp $IMAGE_CONFIGS/corefile_uploader/core_uploader.service $FILESYSTEM_ROOT_USR_LIB_SYSTEMD_SYSTEM
@@ -1000,6 +1019,7 @@ sudo LANG=C DOCKER_HOST="$DOCKER_HOST" chroot $FILESYSTEM_ROOT /usr/local/bin/ge
 echo "pulling universal k8s images ..."
 {% if DEFAULT_CONTAINER_REGISTRY is defined and DEFAULT_CONTAINER_REGISTRY %}
 sudo https_proxy=$https_proxy LANG=C chroot $FILESYSTEM_ROOT docker $SONIC_NATIVE_DOCKERD_FOR_DOCKERFS pull ${DEFAULT_CONTAINER_REGISTRY}pause:${K8s_GCR_IO_PAUSE_VERSION}
+sudo LANG=C chroot $FILESYSTEM_ROOT docker $SONIC_NATIVE_DOCKERD_FOR_DOCKERFS tag ${DEFAULT_CONTAINER_REGISTRY}pause:${K8s_GCR_IO_PAUSE_VERSION} k8s.gcr.io/pause:${K8s_GCR_IO_PAUSE_VERSION}
 {% else %}
 sudo https_proxy=$https_proxy LANG=C chroot $FILESYSTEM_ROOT docker $SONIC_NATIVE_DOCKERD_FOR_DOCKERFS pull k8s.gcr.io/pause:${K8s_GCR_IO_PAUSE_VERSION}
 {% endif %}
@@ -1019,6 +1039,15 @@ sudo https_proxy=$https_proxy LANG=C chroot $FILESYSTEM_ROOT docker $SONIC_NATIV
 sudo https_proxy=$https_proxy LANG=C chroot $FILESYSTEM_ROOT docker $SONIC_NATIVE_DOCKERD_FOR_DOCKERFS pull ${DEFAULT_CONTAINER_REGISTRY}etcd:${MASTER_ETCD_VERSION}
 sudo https_proxy=$https_proxy LANG=C chroot $FILESYSTEM_ROOT docker $SONIC_NATIVE_DOCKERD_FOR_DOCKERFS pull ${DEFAULT_CONTAINER_REGISTRY}kubernetesui/metrics-scraper:${MASTER_UI_METRIC_VERSION}
 sudo https_proxy=$https_proxy LANG=C chroot $FILESYSTEM_ROOT docker $SONIC_NATIVE_DOCKERD_FOR_DOCKERFS pull ${DEFAULT_CONTAINER_REGISTRY}kubernetesui/dashboard:${MASTER_UI_DASH_VERSION}
+sudo LANG=C chroot $FILESYSTEM_ROOT docker $SONIC_NATIVE_DOCKERD_FOR_DOCKERFS tag ${DEFAULT_CONTAINER_REGISTRY}pause:${MASTER_PAUSE_VERSION} k8s.gcr.io/pause:${MASTER_PAUSE_VERSION}
+sudo LANG=C chroot $FILESYSTEM_ROOT docker $SONIC_NATIVE_DOCKERD_FOR_DOCKERFS tag ${DEFAULT_CONTAINER_REGISTRY}kube-apiserver:${MASTER_KUBERNETES_CONTAINER_IMAGE_VERSION} k8s.gcr.io/kube-apiserver:${MASTER_KUBERNETES_CONTAINER_IMAGE_VERSION}
+sudo LANG=C chroot $FILESYSTEM_ROOT docker $SONIC_NATIVE_DOCKERD_FOR_DOCKERFS tag ${DEFAULT_CONTAINER_REGISTRY}kube-controller-manager:${MASTER_KUBERNETES_CONTAINER_IMAGE_VERSION} k8s.gcr.io/kube-controller-manager:${MASTER_KUBERNETES_CONTAINER_IMAGE_VERSION}
+sudo LANG=C chroot $FILESYSTEM_ROOT docker $SONIC_NATIVE_DOCKERD_FOR_DOCKERFS tag ${DEFAULT_CONTAINER_REGISTRY}kube-scheduler:${MASTER_KUBERNETES_CONTAINER_IMAGE_VERSION} k8s.gcr.io/kube-scheduler:${MASTER_KUBERNETES_CONTAINER_IMAGE_VERSION}
+sudo LANG=C chroot $FILESYSTEM_ROOT docker $SONIC_NATIVE_DOCKERD_FOR_DOCKERFS tag ${DEFAULT_CONTAINER_REGISTRY}kube-proxy:${MASTER_KUBERNETES_CONTAINER_IMAGE_VERSION} k8s.gcr.io/kube-proxy:${MASTER_KUBERNETES_CONTAINER_IMAGE_VERSION}
+sudo LANG=C chroot $FILESYSTEM_ROOT docker $SONIC_NATIVE_DOCKERD_FOR_DOCKERFS tag ${DEFAULT_CONTAINER_REGISTRY}coredns/coredns:${MASTER_COREDNS_VERSION} k8s.gcr.io/coredns/coredns:${MASTER_COREDNS_VERSION}
+sudo LANG=C chroot $FILESYSTEM_ROOT docker $SONIC_NATIVE_DOCKERD_FOR_DOCKERFS tag ${DEFAULT_CONTAINER_REGISTRY}etcd:${MASTER_ETCD_VERSION} k8s.gcr.io/etcd:${MASTER_ETCD_VERSION}
+sudo LANG=C chroot $FILESYSTEM_ROOT docker $SONIC_NATIVE_DOCKERD_FOR_DOCKERFS tag ${DEFAULT_CONTAINER_REGISTRY}kubernetesui/metrics-scraper:${MASTER_UI_METRIC_VERSION} kubernetesui/metrics-scraper:${MASTER_UI_METRIC_VERSION}
+sudo LANG=C chroot $FILESYSTEM_ROOT docker $SONIC_NATIVE_DOCKERD_FOR_DOCKERFS tag ${DEFAULT_CONTAINER_REGISTRY}kubernetesui/dashboard:${MASTER_UI_DASH_VERSION} kubernetesui/dashboard:${MASTER_UI_DASH_VERSION}
 {% else %}
 sudo https_proxy=$https_proxy LANG=C chroot $FILESYSTEM_ROOT docker $SONIC_NATIVE_DOCKERD_FOR_DOCKERFS pull k8s.gcr.io/pause:${MASTER_PAUSE_VERSION}
 sudo https_proxy=$https_proxy LANG=C chroot $FILESYSTEM_ROOT docker $SONIC_NATIVE_DOCKERD_FOR_DOCKERFS pull k8s.gcr.io/kube-apiserver:${MASTER_KUBERNETES_CONTAINER_IMAGE_VERSION}
