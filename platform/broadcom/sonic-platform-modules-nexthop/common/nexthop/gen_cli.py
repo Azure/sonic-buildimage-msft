@@ -23,9 +23,9 @@ DEFAULT_PLATFORM_JSON_FILEPATH = f"{PLATFORM_FOLDER}/platform.json"
 
 DEFAULT_PDDF_DEVICE_JSON_TEMPLATE_FILEPATH = f"{PDDF_FOLDER}/pddf-device.json.j2"
 DEFAULT_PDDF_DEVICE_JSON_OUTPUT_FILEPATH = f"{PDDF_FOLDER}/pddf-device.json"
-# Optional artifact: present only for platforms that declare FPGA-version
-# feature flags. Each flag is evaluated at boot and exposed as a Jinja boolean
-# for pddf-device.json.j2 and pd-plugin.json.j2.
+# Optional artifact: present only for platforms that declare FPGA-version or
+# Device-Version feature flags. Each flag is evaluated at boot and exposed as a
+# Jinja boolean for pddf-device.json.j2 and pd-plugin.json.j2.
 DEFAULT_FEATURE_FLAGS_FILEPATH = f"{PDDF_FOLDER}/feature-flags.json"
 
 DEFAULT_PD_PLUGIN_JSON_TEMPLATE_FILEPATH = f"{PDDF_FOLDER}/pd-plugin.json.j2"
@@ -39,11 +39,10 @@ def check_file_exists_if_not_default(filepath: str, default_filepath: str, param
     if filepath != default_filepath and not os.path.isfile(filepath):
         raise click.BadParameter(f"{filepath} does not exist.", param_hint=param_name)
 
-def generate_file_from_jinja2_template(
-    template_filepath: str, variables: dict[str, Any], output_filepath: str
-):
+def get_device_version(output_filepath: str) -> int:
+    """The CPU card Device Version, or UNPROGRAMMED_DEVICE_VERSION when it cannot be read."""
     try:
-        device_version = nexthop_device_info.get_device_version()
+        return nexthop_device_info.get_device_version()
     except Exception as e:  # noqa: BLE001
         device_version = nexthop_device_info.UNPROGRAMMED_DEVICE_VERSION
         syslog.syslog(
@@ -51,7 +50,14 @@ def generate_file_from_jinja2_template(
             f"Couldn't determine device_version ({type(e).__name__}: {e}), using default value: {device_version} "
             f"for generation of {output_filepath}",
         )
-    variables = {**variables, "device_version": device_version}
+        return device_version
+
+
+def generate_file_from_jinja2_template(
+    template_filepath: str, variables: dict[str, Any], output_filepath: str
+):
+    if "device_version" not in variables:
+        variables = {**variables, "device_version": get_device_version(output_filepath)}
     loader = jinja2.FileSystemLoader(os.path.dirname(template_filepath))
     # nosemgrep: python.flask.security.xss.audit.direct-use-of-jinja2.direct-use-of-jinja2
     j2_env = jinja2.Environment(loader=loader, keep_trailing_newline=True)
@@ -113,9 +119,7 @@ def cli():
     "--feature_flags_filepath",
     type=click.Path(exists=False),
     default=DEFAULT_FEATURE_FLAGS_FILEPATH,
-    help="Filepath to feature-flags.json. Optional; only present for platforms that declare "
-    "FPGA-version feature flags. Each flag is evaluated against live hardware and exposed as "
-    "a Jinja boolean in the template.",
+    help="Filepath to feature-flags.json.",
 )
 @click.option(
     "--output_filepath",
@@ -150,9 +154,10 @@ def pddf_device_json(template_filepath, vars_filepath, platform_json_filepath, f
         return
 
     vars["platform"] = platform
+    vars["device_version"] = get_device_version(output_filepath)
 
-    # Evaluate FPGA-version feature flags (if any) against live hardware and add
-    # them as Jinja booleans. Fail loudly rather than render the wrong layout.
+    # Evaluate the feature flags (if any) against live hardware and add them as
+    # Jinja booleans. Fail loudly rather than render the wrong layout.
     try:
         vars.update(feature_flags_lib.get_feature_flag_variables(feature_flags_filepath, vars))
     except Exception as e:
@@ -184,9 +189,7 @@ def pddf_device_json(template_filepath, vars_filepath, platform_json_filepath, f
     "--feature_flags_filepath",
     type=click.Path(exists=False),
     default=DEFAULT_FEATURE_FLAGS_FILEPATH,
-    help="Filepath to feature-flags.json. Optional; only present for platforms that declare "
-    "FPGA-version feature flags. Each flag is evaluated against live hardware and exposed as "
-    "a Jinja boolean in the template.",
+    help="Filepath to feature-flags.json.",
 )
 @click.option(
     "--output_filepath",
@@ -207,8 +210,10 @@ def pd_plugin_json(template_filepath, vars_filepath, feature_flags_filepath, out
         syslog.syslog(syslog.LOG_ERR, f"Failed to generate {output_filepath}: {e}")
         sys.exit(1)
 
-    # Evaluate FPGA-version feature flags (if any) against live hardware and add
-    # them as Jinja booleans. Fail loudly rather than render the wrong layout.
+    vars["device_version"] = get_device_version(output_filepath)
+
+    # Evaluate the feature flags (if any) against live hardware and add them as
+    # Jinja booleans. Fail loudly rather than render the wrong layout.
     try:
         vars.update(feature_flags_lib.get_feature_flag_variables(feature_flags_filepath, vars))
     except Exception as e:
