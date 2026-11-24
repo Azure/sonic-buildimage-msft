@@ -353,3 +353,14 @@ class CPO(CpoOptoeBase):
             self._cpolog(LOG_ERROR_LEVEL,
                 "write_eeprom error {}, offset: {}, {}".format(self._port_id, offset, e))
             return False
+
+    def set_lpmode(self, lpmode):
+        if lpmode:
+            self._cpolog(LOG_ERROR_LEVEL, f"cpo current not support lpmode on: {self._port_id}: {lpmode}")
+            return True
+        api = self.get_xcvr_api()
+        return api.set_lpmode(lpmode) if api is not None else None
+
+    def reset(self):
+        self._cpolog(LOG_ERROR_LEVEL, f"cpo current not support reset: {self._port_id}")
+        return True
